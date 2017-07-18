@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">FileManager</string>
+
+    <string name="category_image">Picture</string>
+    <string name="category_music">Music</string>
+    <string name="category_video">Video</string>
+    <string name="category_document">Document</string>
+    <string name="category_qq">QQ</string>
+    <string name="category_wechat">WeChat</string>
+    <string name="category_apk">APK</string>
+    <string name="category_favorite">Favorite</string>
+    <string name="category_encryption">Encryption</string>
+
+    <string name="category_storage">Category Storage</string>
+    <string name="phone_storage">Phone Storage</string>
 </resources>
