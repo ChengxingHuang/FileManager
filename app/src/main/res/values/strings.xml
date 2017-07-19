@@ -13,4 +13,9 @@
 
     <string name="category_storage">Category Storage</string>
     <string name="phone_storage">Phone Storage</string>
+
+    <string name="menu_setting">Setting</string>
+    <string name="menu_feedback">Feedback</string>
+    <string name="menu_sponsor">Sponsor</string>
+    <string name="menu_about">About</string>
 </resources>

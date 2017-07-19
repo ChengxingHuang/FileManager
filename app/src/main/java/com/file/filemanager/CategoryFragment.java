@@ -5,6 +5,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.SimpleAdapter;
 
@@ -41,16 +42,45 @@ public class CategoryFragment extends Fragment {
         initData();
 
         View v = inflater.inflate(R.layout.fragment_category, container, false);
+
         mCategoryGrid = (GridView)v.findViewById(R.id.category_grid);
         mCategoryGrid.setAdapter(new SimpleAdapter(getActivity(), mDataList, R.layout.item_category,
                 new String[]{KEY_ICON, KEY_TITLE, KEY_COUNT},
                 new int[]{R.id.category_image, R.id.category_title, R.id.category_count}));
+        mCategoryGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // TODO: 2017/7/19 根据分类信息显示不同的信息，应该不需要这么case的
+                switch (position){
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                    case 5:
+                        break;
+                    case 6:
+                        break;
+                    case 7:
+                        break;
+                    case 8:
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
 
         return v;
     }
 
     private void initData(){
-        // TODO: 2017/7/18 get category count
+        // TODO: 2017/7/18 获取分类的total个数
         int count = 0;
         for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
             Map<String, Object> map = new HashMap<>();
