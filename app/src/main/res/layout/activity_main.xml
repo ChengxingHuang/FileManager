@@ -26,7 +26,7 @@
             android:background="@android:color/holo_blue_light"
             app:tabGravity="fill"
             app:tabMode="fixed"
-            app:tabIndicatorHeight="3dp"
+            app:tabIndicatorHeight="@dimen/tab_indicator_height"
             app:tabIndicatorColor="@android:color/white"
             app:tabSelectedTextColor="@android:color/white"
             app:tabTextColor="@android:color/white"  />

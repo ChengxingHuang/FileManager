@@ -21,7 +21,11 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        return new CategoryFragment();
+        if(0 == position) {
+            return new CategoryFragment();
+        }else{
+            return new ListFragment();
+        }
     }
 
     @Override
