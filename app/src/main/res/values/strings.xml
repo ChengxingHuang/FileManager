@@ -18,4 +18,6 @@
     <string name="menu_feedback">Feedback</string>
     <string name="menu_sponsor">Sponsor</string>
     <string name="menu_about">About</string>
+
+    <string name="empty">Empty</string>
 </resources>
