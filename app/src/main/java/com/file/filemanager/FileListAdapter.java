@@ -2,7 +2,6 @@ package com.file.filemanager;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,14 +11,14 @@ import android.widget.TextView;
 import java.util.List;
 import java.util.Map;
 
-public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder>{
+public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder>{
 
     private Context mContext;
     private List<Map<String, Object>> mDataList;
     private LayoutInflater mInflater;
     public OnItemClickLister mOnItemClickLister;
 
-    public RecyclerViewAdapter(Context context, List<Map<String, Object>> dataList){
+    public FileListAdapter(Context context, List<Map<String, Object>> dataList){
         mContext = context;
         mDataList = dataList;
         mInflater = LayoutInflater.from(mContext);
@@ -36,7 +35,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        MyViewHolder holder = new MyViewHolder(mInflater.inflate(R.layout.item_list, parent, false));
+        MyViewHolder holder = new MyViewHolder(mInflater.inflate(R.layout.file_list_item, parent, false));
         return holder;
     }
 
