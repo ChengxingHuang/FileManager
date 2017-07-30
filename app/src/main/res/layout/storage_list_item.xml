@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/fragment_list_item_height"
+    android:layout_marginTop="@dimen/fragment_list_margin_top"
+    android:paddingLeft="@dimen/fragment_list_padding_left"
+    android:background="@drawable/ripple_bg">
+
+    <ImageView
+        android:id="@+id/storage_type_image"
+        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_alignParentLeft="true"/>
+
+    <LinearLayout
+        android:layout_toRightOf="@+id/storage_type_image"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="@dimen/fragment_list_item_text_margin_left"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/storage_name_text"
+            android:layout_weight="1"
+            android:layout_height="0dp"
+            android:layout_width="wrap_content"/>
+
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/storage_available_text"
+                style="@style/list_item_info_style"/>
+
+            <TextView
+                android:id="@+id/storage_total_text"
+                android:layout_marginLeft="@dimen/fragment_list_item_text_space"
+                style="@style/list_item_info_style"/>
+        </LinearLayout>
+    </LinearLayout>
+</RelativeLayout>

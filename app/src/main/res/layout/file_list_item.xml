@@ -27,28 +27,30 @@
             android:layout_height="0dp"
             android:layout_width="wrap_content"/>
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/include_file_count_text"
             android:layout_weight="1"
             android:layout_height="0dp"
             android:layout_width="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:id="@+id/last_change_date_text"
-                style="@style/list_item_info_style"/>
-
-            <TextView
-                android:id="@+id/last_change_time_text"
-                android:layout_marginLeft="@dimen/fragment_list_item_text_space"
-                style="@style/list_item_info_style"/>
-        </LinearLayout>
+            style="@style/list_item_info_style"/>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/include_file_count_text"
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
         android:layout_marginRight="@dimen/fragment_list_item_option_menu_margin_right"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        style="@style/list_item_info_style"/>
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/last_change_date_text"
+            style="@style/list_item_info_style"/>
+
+        <TextView
+            android:id="@+id/last_change_time_text"
+            android:layout_marginLeft="@dimen/fragment_list_item_text_space"
+            style="@style/list_item_info_style"/>
+    </LinearLayout>
 
     <ImageView
         android:id="@+id/option_menu_image"

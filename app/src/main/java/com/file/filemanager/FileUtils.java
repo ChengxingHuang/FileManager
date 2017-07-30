@@ -85,4 +85,18 @@ public class FileUtils {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
         return dateFormat.format(lastChangeTime);
     }
+
+    /**
+     * 获取获取指定存储（手机/SD卡）的可用空间
+     */
+    public static String getStorageAvailableSpace(String path){
+        return "Available:6GB";
+    }
+
+    /**
+     * 获取获取指定存储（手机/SD卡）的总空间
+     */
+    public static String getStorageTotalSpace(String path){
+        return "Total:6GB";
+    }
 }
