@@ -27,6 +27,7 @@ import java.lang.reflect.Method;
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
+    private MyFragmentPagerAdapter mAdapter;
     public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
 
     @Override
@@ -53,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
         toggle.syncState();
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.pager_main);
-        MyFragmentPagerAdapter adapter = new MyFragmentPagerAdapter(getSupportFragmentManager(), this);
-        viewPager.setAdapter(adapter);
+        mAdapter = new MyFragmentPagerAdapter(getSupportFragmentManager(), this);
+        viewPager.setAdapter(mAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_main);
         tabLayout.setupWithViewPager(viewPager);
@@ -100,8 +101,11 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawer(GravityCompat.START);
-        }else {
-            super.onBackPressed();
+            return;
+        } else if(mAdapter.updateListFragment()){
+            return;
         }
+
+        super.onBackPressed();
     }
 }
