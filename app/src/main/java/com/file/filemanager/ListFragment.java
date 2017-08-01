@@ -3,7 +3,6 @@ package com.file.filemanager;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -23,6 +22,8 @@ public class ListFragment extends Fragment {
 
     public static final String TAG = "ListFragment";
 
+    private static final int UI_STACK_MAX_LENGTH = 20;
+
     private List<Map<String, Object>> mFileList = new ArrayList<Map<String, Object>>();
     private List<Map<String, Object>> mDocumentList = new ArrayList<Map<String, Object>>();
     private List<Map<String, Object>> mStorageList = new ArrayList<Map<String, Object>>();
@@ -34,9 +35,11 @@ public class ListFragment extends Fragment {
 
     private String[] mStoragePaths;
     private String mStoragePath;
+    private String[] mUiDataStackPath = new String[UI_STACK_MAX_LENGTH];
+    private int mUiDataStackLength = 0;
     private int mFoldersCount = 0;
     private int mDocumentCount = 0;
-    private String mFileName[];
+    private String mFileNameArray[];
 
     public ListFragment() {
     }
@@ -54,48 +57,39 @@ public class ListFragment extends Fragment {
         initStorageData();
         Log.d(TAG, "Storage Count = " + mStoragePaths.length);
 
-        // 只有一个有效存储路径
+        // 只有一个有效存储路径，直接显示list，否则显示选择手机和SD卡的list
         if(1 == mStoragePaths.length || 1 == mStorageList.size()) {
             mStoragePath = mStoragePaths[0];
+            mUiDataStackPath[mUiDataStackLength] = mStoragePath;
+            mUiDataStackLength++;
             setFileListAdapter();
         }else{
-            mStorageListAdapter = new StorageListAdapter(getActivity(), mStorageList);
-            mStorageListAdapter.setOnItemClickLister(new StorageListAdapter.OnItemClickLister() {
-                @Override
-                public void onItemClick(View v, int position) {
-                    mStoragePath = mStoragePaths[position];
-                    setFileListAdapter();
-                }
-
-                @Override
-                public void onItemLongClick(View v, int position) {
-
-                }
-            });
-
-            mRecyclerView.setAdapter(mStorageListAdapter);
+            setStorageListAdapter();
         }
 
         return v;
     }
 
+    /*
+     * 初始化指定路径mStoragePath下的文件列表
+     */
     private void initFilesData(){
-        mFileName = null;
+        mFileNameArray = null;
         mFileList.clear();
         mDocumentList.clear();
-        mFileName = new File(mStoragePath).list();
+        mFileNameArray = new File(mStoragePath).list();
 
-        if(null != mFileName) {
-            for (int i = 0; i < mFileName.length; i++) {
+        if(null != mFileNameArray) {
+            for (int i = 0; i < mFileNameArray.length; i++) {
                 Map<String, Object> map = new HashMap<String, Object>();
 
-                File fileTemp = new File(mStoragePath + '/' + mFileName[i]);
+                File fileTemp = new File(mStoragePath + '/' + mFileNameArray[i]);
                 int fileTypeImage = 0;
                 String includeFileCount = null;
 
                 if (fileTemp.isDirectory()) {
                     fileTypeImage = R.drawable.file_type_folder;
-                    includeFileCount = FileUtils.getChildFolderFileCount(getActivity(), mStoragePath + '/' + mFileName[i]);
+                    includeFileCount = FileUtils.getChildFolderFileCount(getActivity(), mStoragePath + '/' + mFileNameArray[i]);
                 } else if (fileTemp.isFile()) {
                     // TODO: 2017/7/21 根据MIME_TYPE，显示不同的图标
                     fileTypeImage = R.drawable.file_type_document;
@@ -171,7 +165,9 @@ public class ListFragment extends Fragment {
             public void onItemClick(View v, int position) {
                 // TODO: 2017/7/21 点击文件：打开或提示无法打开；点击文件夹：进入下一级目录
                 if (position < mFoldersCount) {
-                    mStoragePath = mStoragePath + '/' + mFileName[position];
+                    mStoragePath = mStoragePath + '/' + mFileNameArray[position];
+                    mUiDataStackPath[mUiDataStackLength] = mStoragePath;
+                    mUiDataStackLength++;
                     initFilesData();
                     mFileListAdapter.notifyDataSetChanged();
                 }
@@ -184,5 +180,39 @@ public class ListFragment extends Fragment {
         });
 
         mRecyclerView.setAdapter(mFileListAdapter);
+    }
+
+    private void setStorageListAdapter(){
+        mStorageListAdapter = new StorageListAdapter(getActivity(), mStorageList);
+        mStorageListAdapter.setOnItemClickLister(new StorageListAdapter.OnItemClickLister() {
+            @Override
+            public void onItemClick(View v, int position) {
+                mStoragePath = mStoragePaths[position];
+                mUiDataStackPath[mUiDataStackLength] = mStoragePath;
+                mUiDataStackLength++;
+                setFileListAdapter();
+            }
+
+            @Override
+            public void onItemLongClick(View v, int position) {
+
+            }
+        });
+
+        mRecyclerView.setAdapter(mStorageListAdapter);
+    }
+
+    public boolean updateList(){
+        // TODO: 2017/8/1 List回退栈，这种方式效率低下，需要优化 
+        if(mUiDataStackLength > 1) {
+            mStoragePath = mUiDataStackPath[mUiDataStackLength - 2];
+            Log.d(TAG, "current storage path = " + mStoragePath);
+            mUiDataStackLength--;
+            initFilesData();
+            mFileListAdapter.notifyDataSetChanged();
+            return true;
+        }
+
+        return false;
     }
 }

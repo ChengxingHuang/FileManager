@@ -14,6 +14,8 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     private int[] mTabTitles = {R.string.category_storage, R.string.phone_storage};
     private Context mContext;
 
+    private ListFragment mListFragment;
+
     public MyFragmentPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
         mContext = context;
@@ -24,7 +26,8 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         if(0 == position) {
             return new CategoryFragment();
         }else{
-            return new ListFragment();
+            mListFragment = new ListFragment();
+            return mListFragment;
         }
     }
 
@@ -36,5 +39,13 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     @Override
     public CharSequence getPageTitle(int position) {
         return mContext.getResources().getString(mTabTitles[position]);
+    }
+
+    public boolean updateListFragment(){
+        if(null != mListFragment) {
+            return mListFragment.updateList();
+        }else{
+            return false;
+        }
     }
 }
