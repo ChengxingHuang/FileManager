@@ -9,16 +9,15 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
-import java.util.Map;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder>{
 
     private Context mContext;
-    private List<Map<String, Object>> mDataList;
+    private List<FileInfo> mDataList;
     private LayoutInflater mInflater;
     public OnItemClickLister mOnItemClickLister;
 
-    public FileListAdapter(Context context, List<Map<String, Object>> dataList){
+    public FileListAdapter(Context context, List<FileInfo> dataList){
         mContext = context;
         mDataList = dataList;
         mInflater = LayoutInflater.from(mContext);
@@ -41,12 +40,12 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, int position) {
-        Map<String, Object> map = mDataList.get(position);
-        holder.mFileTypeImage.setImageResource((int)map.get("FileTypeImage"));
-        holder.mFileNameText.setText((String)map.get("FileName"));
-        holder.mLastChangeDateText.setText((String)map.get("LastChangeDate"));
-        holder.mLastChangeTimeText.setText((String)map.get("LastChangeTime"));
-        holder.mIncludeFilesCountText.setText((String)map.get("IncludeFileCount"));
+        FileInfo fileInfo = mDataList.get(position);
+        holder.mFileTypeImage.setImageResource(fileInfo.getFileTypeImage());
+        holder.mFileNameText.setText(fileInfo.getFileName());
+        holder.mFileSizeText.setText(fileInfo.getFileSize());
+        holder.mLastModifiedDateText.setText(fileInfo.getFileLastModifiedDate());
+        holder.mLastModifiedTimeText.setText(fileInfo.getFileLastModifiedTime());
         holder.mOptionMenuImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -86,18 +85,18 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     public static class MyViewHolder extends RecyclerView.ViewHolder {
         public ImageView mFileTypeImage;
         public TextView mFileNameText;
-        public TextView mLastChangeDateText;
-        public TextView mLastChangeTimeText;
-        public TextView mIncludeFilesCountText;
+        public TextView mFileSizeText;
+        public TextView mLastModifiedDateText;
+        public TextView mLastModifiedTimeText;
         public ImageView mOptionMenuImage;
 
         public MyViewHolder(View view) {
             super(view);
             mFileTypeImage = (ImageView) view.findViewById(R.id.file_type_image);
             mFileNameText = (TextView) view.findViewById(R.id.file_name_text);
-            mLastChangeDateText = (TextView) view.findViewById(R.id.last_change_date_text);
-            mLastChangeTimeText = (TextView) view.findViewById(R.id.last_change_time_text);
-            mIncludeFilesCountText = (TextView) view.findViewById(R.id.include_file_count_text);
+            mLastModifiedDateText = (TextView) view.findViewById(R.id.last_change_date_text);
+            mLastModifiedTimeText = (TextView) view.findViewById(R.id.last_change_time_text);
+            mFileSizeText = (TextView) view.findViewById(R.id.include_file_count_text);
             mOptionMenuImage = (ImageView) view.findViewById(R.id.option_menu_image);
         }
     }

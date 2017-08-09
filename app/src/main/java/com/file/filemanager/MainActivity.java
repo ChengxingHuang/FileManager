@@ -17,12 +17,8 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import java.io.File;
-import java.lang.reflect.Method;
 
 public class MainActivity extends AppCompatActivity {
 
