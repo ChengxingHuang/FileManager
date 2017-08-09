@@ -2,7 +2,6 @@ package com.file.filemanager;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,12 +9,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
-import java.util.Map;
 
 public class StorageListAdapter extends RecyclerView.Adapter<StorageListAdapter.MyViewHolder> {
 
     private Context mContext;
-    private List<Map<String, Object>> mDataList;
+    private List<StorageInfo> mDataList;
     private LayoutInflater mInflater;
     public OnItemClickLister mOnItemClickLister;
 
@@ -28,7 +26,7 @@ public class StorageListAdapter extends RecyclerView.Adapter<StorageListAdapter.
         mOnItemClickLister = onItemClickLister;
     }
 
-    public StorageListAdapter(Context context, List<Map<String, Object>> dataList){
+    public StorageListAdapter(Context context, List<StorageInfo> dataList){
         mContext = context;
         mDataList = dataList;
         mInflater = LayoutInflater.from(mContext);
@@ -42,11 +40,10 @@ public class StorageListAdapter extends RecyclerView.Adapter<StorageListAdapter.
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, int position) {
-        Map<String, Object> map = mDataList.get(position);
-        holder.mStorageTypeImage.setImageResource((int)map.get("StorageTypeImage"));
-        holder.mStorageNameText.setText((String)map.get("StorageName"));
-        holder.mStorageAvailableText.setText((String)map.get("StorageAvailable"));
-        holder.mStorageTotalText.setText((String)map.get("StorageTotal"));
+        holder.mStorageTypeImage.setImageResource((int)mDataList.get(position).getStorageTypeImage());
+        holder.mStorageNameText.setText(mDataList.get(position).getStorageName());
+        holder.mStorageAvailableText.setText(mDataList.get(position).getStorageAvailable());
+        holder.mStorageTotalText.setText(mDataList.get(position).getStorageTotal());
 
         //设置RecyclerView item的点击事件
         if(null != mOnItemClickLister){

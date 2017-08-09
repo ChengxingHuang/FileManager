@@ -23,4 +23,6 @@
 
     <string name="phone">Phone</string>
     <string name="sdcard">SDCard</string>
+
+    <string name="empty_folder">Can\'t open empty folder.</string>
 </resources>
