@@ -64,6 +64,10 @@ public class FileInfo {
         return mFileTypeImage;
     }
 
+    public File getFile(){
+        return mFile;
+    }
+
     public String getFileAbsolutePath() {
         return mFileAbsolutePath;
     }
@@ -166,7 +170,7 @@ public class FileInfo {
      * 根据文件名（包含路径）获取文件的MIME类型
      */
     public String getMimeType(String path){
-        if((null == path) || (path.endsWith("."))){
+        if((null == path) || (path.endsWith(".")) || (!path.contains("."))){
             return null;
         }
 
