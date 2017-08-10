@@ -25,4 +25,5 @@
     <string name="sdcard">SDCard</string>
 
     <string name="empty_folder">Can\'t open empty folder.</string>
+    <string name="unknown_type">Can\'t open unknow type file.</string>
 </resources>

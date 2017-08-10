@@ -1,6 +1,8 @@
 package com.file.filemanager;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.storage.StorageManager;
 import android.support.v4.app.Fragment;
@@ -145,8 +147,17 @@ public class ListFragment extends Fragment {
                         Toast.makeText(mContext, mContext.getResources().getString(R.string.empty_folder), Toast.LENGTH_SHORT).show();
                     }
                 }else{
-                    // TODO: 2017/7/21 点击文件：打开或提示无法打开；点击文件夹：进入下一级目录
                     String mimeType = fileInfo.getMimeType(fileInfo.getFileAbsolutePath());
+                    Log.d(TAG, "mimeType = " + mimeType);
+                    if(null != mimeType){
+                        Intent intent = new Intent();
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(fileInfo.getFile()), mimeType);
+                        startActivity(intent);
+                    }else{
+                        Toast.makeText(mContext, mContext.getResources().getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
