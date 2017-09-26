@@ -43,7 +43,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
     public boolean updateListFragment(){
         if(null != mListFragment) {
-            return mListFragment.updateList();
+            return mListFragment.backToPrePath();
         }else{
             return false;
         }

@@ -15,21 +15,13 @@ public class StorageListAdapter extends RecyclerView.Adapter<StorageListAdapter.
     private Context mContext;
     private List<StorageInfo> mDataList;
     private LayoutInflater mInflater;
-    public OnItemClickLister mOnItemClickLister;
+    private ListFragment mListFragment;
 
-    public interface OnItemClickLister{
-        void onItemClick(View v, int position);
-        void onItemLongClick(View v, int position);
-    }
-
-    public void setOnItemClickLister(OnItemClickLister onItemClickLister){
-        mOnItemClickLister = onItemClickLister;
-    }
-
-    public StorageListAdapter(Context context, List<StorageInfo> dataList){
+    public StorageListAdapter(Context context, List<StorageInfo> dataList, ListFragment fragment){
         mContext = context;
         mDataList = dataList;
         mInflater = LayoutInflater.from(mContext);
+        mListFragment = fragment;
     }
 
     @Override
@@ -45,26 +37,22 @@ public class StorageListAdapter extends RecyclerView.Adapter<StorageListAdapter.
         holder.mStorageAvailableText.setText(mDataList.get(position).getStorageAvailable());
         holder.mStorageTotalText.setText(mDataList.get(position).getStorageTotal());
 
-        //设置RecyclerView item的点击事件
-        if(null != mOnItemClickLister){
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = holder.getLayoutPosition();
-                    mOnItemClickLister.onItemClick(v, position);
-                }
-            });
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int position = holder.getLayoutPosition();
+                mListFragment.showRootPathList(mDataList.get(position).getPath());
+            }
+        });
 
-            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    int position = holder.getLayoutPosition();
-                    mOnItemClickLister.onItemLongClick(v, position);
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                int position = holder.getLayoutPosition();
 
-                    return true;
-                }
-            });
-        }
+                return true;
+            }
+        });
     }
 
     @Override

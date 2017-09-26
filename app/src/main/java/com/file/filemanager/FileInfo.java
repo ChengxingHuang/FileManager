@@ -1,5 +1,6 @@
 package com.file.filemanager;
 
+import android.content.Context;
 import android.webkit.MimeTypeMap;
 
 import java.io.File;
@@ -32,17 +33,18 @@ public class FileInfo {
     private String mFileLastModifiedDate;
     private String mFileLastModifiedTime;
 
-    public FileInfo(String path){
+    public FileInfo(Context context, String path){
         if(path != null){
             mFile = new File(path);
             mFileAbsolutePath = path;
             mFileName = mFile.getName();
             mIsFolder = mFile.isDirectory();
             if(mIsFolder) {
-                mFileSize = getChildFilesCount() + "";
+                mFileSize = getChildFilesCount(context) + "";
                 mFileTypeImage = R.drawable.file_type_folder;
             }else{
                 mFileSize = sizeToHumanString(mFile.length());
+                // TODO: 2017/9/25 根据不同的类型显示不同的图标 
                 mFileTypeImage = R.drawable.file_type_document;
             }
             mParentFileAbsolutePath = getParentPath(path);
@@ -99,8 +101,21 @@ public class FileInfo {
     /**
      * 获取文件夹中包含多少子文件
      */
-    public int getChildFilesCount(){
-        return mFile.list().length;
+    public int getChildFilesCount(Context context){
+        boolean canShowHideFile = PreferenceUtils.canShowHideFile(context);
+
+        if(canShowHideFile){
+            return mFile.list().length;
+        }else {
+            int length = 0;
+            for (String file : mFile.list()) {
+                if (file.startsWith(".")) {
+                    continue;
+                }
+                length++;
+            }
+            return length;
+        }
     }
 
     /**
@@ -185,7 +200,7 @@ public class FileInfo {
 
     static class NameComparator implements Comparator{
         private boolean mIsFolderFirst = true;
-        private boolean mIsAsc = false;
+        private boolean mIsAsc = true;
 
         public NameComparator(boolean isFolderFirst, boolean isAsc){
             mIsFolderFirst = isFolderFirst;

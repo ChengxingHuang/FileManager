@@ -9,12 +9,14 @@ public class StorageInfo {
     private String mStorageName;
     private String mStorageAvailable;
     private String mStorageTotal;
+    private String mPath;
 
-    public StorageInfo(int image, String name, String available, String total){
+    public StorageInfo(int image, String name, String available, String total, String path){
         mStorageTypeImage = image;
         mStorageName = name;
         mStorageAvailable = available;
         mStorageTotal = total;
+        mPath = path;
     }
 
     public int getStorageTypeImage() {
@@ -31,5 +33,9 @@ public class StorageInfo {
 
     public String getStorageTotal() {
         return mStorageTotal;
+    }
+
+    public String getPath(){
+        return mPath;
     }
 }

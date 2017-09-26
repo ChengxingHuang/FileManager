@@ -1,35 +1,33 @@
 package com.file.filemanager;
 
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder>{
 
+    public static final String TAG = "FileListAdapter";
+
     private Context mContext;
     private List<FileInfo> mDataList;
     private LayoutInflater mInflater;
-    public OnItemClickLister mOnItemClickLister;
+    private ListFragment mListFragment;
 
-    public FileListAdapter(Context context, List<FileInfo> dataList){
+    public FileListAdapter(Context context, List<FileInfo> dataList, ListFragment fragment){
         mContext = context;
         mDataList = dataList;
         mInflater = LayoutInflater.from(mContext);
-    }
-
-    public interface OnItemClickLister{
-        void onItemClick(View v, int position);
-        void onItemLongClick(View v, int position);
-    }
-
-    public void setOnItemClickLister(OnItemClickLister onItemClickLister){
-        mOnItemClickLister = onItemClickLister;
+        mListFragment = fragment;
     }
 
     @Override
@@ -54,27 +52,43 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             }
         });
 
-        //设置RecyclerView item的点击事件
-        if(null != mOnItemClickLister){
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = holder.getLayoutPosition();
-                    mOnItemClickLister.onItemClick(v, position);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int position = holder.getLayoutPosition();
+                FileInfo fileInfo = mDataList.get(position);
+                if(fileInfo.isFolder()){
+                    if(fileInfo.getChildFilesCount(mContext) > 0) {
+                        //进入文件夹
+                        Log.d(TAG, fileInfo.getFileAbsolutePath());
+                        mListFragment.showFileList(fileInfo.getFileAbsolutePath());
+                    }else{
+                        Toast.makeText(mContext, mContext.getResources().getString(R.string.empty_folder), Toast.LENGTH_SHORT).show();
+                    }
+                }else{
+                    String mimeType = fileInfo.getMimeType(fileInfo.getFileAbsolutePath());
+                    Log.d(TAG, "mimeType = " + mimeType);
+                    if(null != mimeType){
+                        Intent intent = new Intent();
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        intent.setAction(Intent.ACTION_VIEW);
+                        intent.setDataAndType(Uri.fromFile(fileInfo.getFile()), mimeType);
+                        mContext.startActivity(intent);
+                    }else{
+                        Toast.makeText(mContext, mContext.getResources().getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
+                    }
                 }
-            });
+            }
+        });
 
-            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    int position = holder.getLayoutPosition();
-                    mOnItemClickLister.onItemLongClick(v, position);
-
-                    //如果return false执行完long click后还会再执行一次click
-                    return true;
-                }
-            });
-        }
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                int position = holder.getLayoutPosition();
+                // TODO: 2017/7/21 弹出分享/复制/剪切/删除/重命名/详情/收藏菜单
+                return false;
+            }
+        });
     }
 
     @Override
