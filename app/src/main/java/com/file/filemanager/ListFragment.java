@@ -32,11 +32,13 @@ public class ListFragment extends Fragment {
     private Context mContext;
     private RecyclerView mRecyclerView;
 
-    private int mLastTop;
-    private int mLastPosition;
+    private List<LastPosition> mLastPositionList = new ArrayList<LastPosition>();
+    private int mCurPathLevel;
+
     private String mCurPath;
     private String mRootPath;
     private boolean mIsStorageList = false;
+    private boolean mIsBackToPre = false;
 
     private ArrayList<MountStorageManager.MountStorage> mMountStorageList;
 
@@ -63,6 +65,9 @@ public class ListFragment extends Fragment {
             }
         });
 
+        mLastPositionList.clear();
+        mCurPathLevel = 0;
+
         MountStorageManager storageManager = MountStorageManager.getInstance();
         mMountStorageList = storageManager.getMountStorageList();
         Log.d(TAG, "Storage Count = " + mMountStorageList.size());
@@ -88,21 +93,30 @@ public class ListFragment extends Fragment {
      */
     private void getPositionAndOffset() {
         LinearLayoutManager layoutManager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
-        //获取可视的第一个view
         View topView = layoutManager.getChildAt(0);
+
         if(topView != null) {
-            //获取与该view的顶部的偏移量
-            mLastTop = topView.getTop();
-            //得到该View的数组位置
-            mLastPosition = layoutManager.getPosition(topView);
+            LastPosition pos = new LastPosition();
+            pos.mLastTopOffset = topView.getTop();
+            pos.mLastPosition = layoutManager.getPosition(topView);
+
+            mLastPositionList.set(mLastPositionList.size() - 1, pos);
         }
     }
 
     //还原RecyclerView的位置
     private void scrollToPosition() {
-        if(mRecyclerView.getLayoutManager() != null && mLastPosition >= 0) {
-            ((LinearLayoutManager) mRecyclerView.getLayoutManager()).scrollToPositionWithOffset(mLastPosition, mLastTop);
+        if(mRecyclerView.getLayoutManager() != null
+                && mLastPositionList.get(mLastPositionList.size() - 1).mLastPosition >= 0) {
+            ((LinearLayoutManager) mRecyclerView.getLayoutManager()).scrollToPositionWithOffset(
+                    mLastPositionList.get(mLastPositionList.size() - 1).mLastPosition,
+                    mLastPositionList.get(mLastPositionList.size() - 1).mLastTopOffset);
         }
+    }
+
+    class LastPosition{
+        int mLastTopOffset;
+        int mLastPosition;
     }
 
     public class ShowListAsyncTask extends AsyncTask<String, Void, Integer> {
@@ -144,6 +158,10 @@ public class ListFragment extends Fragment {
         protected void onPostExecute(Integer integer) {
             if(ERROR_CODE_SUCCESS == integer) {
                 mFileListAdapter.notifyDataSetChanged();
+                if(mIsBackToPre) {
+                    scrollToPosition();
+                    mIsBackToPre = false;
+                }
             }else if(ERROR_CODE_CHILD_LIST_EMPTY == integer){
                 // TODO: 2017/9/25 这样log要显示具体的路径
                 Log.d(TAG, "this folder is empty");
@@ -157,6 +175,17 @@ public class ListFragment extends Fragment {
     public void showFileList(String path){
         ShowListAsyncTask task = new ShowListAsyncTask();
         task.execute(path);
+
+        if(mIsBackToPre){
+            mCurPathLevel--;
+            mLastPositionList.remove(mLastPositionList.size() - 1);
+        }else{
+            LastPosition pos = new LastPosition();
+            pos.mLastPosition = -1;
+            pos.mLastTopOffset = -1;
+            mLastPositionList.add(pos);
+            mCurPathLevel++;
+        }
     }
 
     public void showRootPathList(String rootPath){
@@ -191,16 +220,15 @@ public class ListFragment extends Fragment {
             mCurPath = mCurPath.substring(0, mCurPath.lastIndexOf("/"));
 
             if (mCurPath.length() >= mRootPath.length()) {
+                mIsBackToPre = true;
                 showFileList(mCurPath);
-                scrollToPosition();
+                return true;
+            } else if (mMountStorageList.size() > 1 && !mIsStorageList) {
+                mIsStorageList = true;
+                mStorageList.clear();
+                showStorageList();
                 return true;
             } else {
-                if (mMountStorageList.size() > 1 && !mIsStorageList) {
-                    mIsStorageList = true;
-                    mStorageList.clear();
-                    showStorageList();
-                    return true;
-                }
                 mIsStorageList = false;
                 return false;
             }
