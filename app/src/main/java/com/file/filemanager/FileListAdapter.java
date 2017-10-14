@@ -32,6 +32,8 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         mListFragment = fragment;
     }
 
+
+
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         MyViewHolder holder = new MyViewHolder(mInflater.inflate(R.layout.file_list_item, parent, false));
