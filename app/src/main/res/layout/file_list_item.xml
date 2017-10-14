@@ -11,7 +11,7 @@
     <ImageView
         android:id="@+id/file_type_image"
         android:layout_height="match_parent"
-        android:layout_width="wrap_content"
+        android:layout_width="35dp"
         android:layout_alignParentLeft="true"/>
 
     <LinearLayout

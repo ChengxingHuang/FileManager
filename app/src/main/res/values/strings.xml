@@ -26,4 +26,13 @@
 
     <string name="empty_folder">Can\'t open empty folder.</string>
     <string name="unknown_type">Can\'t open unknow type file.</string>
+
+    <string name="copy">Copy</string>
+    <string name="cut">Cut</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <string name="favorite">Favorite</string>
+    <string name="encryption">Encryption</string>
+    <string name="share">Share</string>
+    <string name="detail">Detail</string>
 </resources>
