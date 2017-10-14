@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
         MountStorageManager storageManager = MountStorageManager.getInstance();
         storageManager.init(this);
 
+        FileInfo.init();
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             //申请权限
