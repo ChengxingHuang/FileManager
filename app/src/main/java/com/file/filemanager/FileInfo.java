@@ -42,6 +42,7 @@ public class FileInfo {
     private boolean mIsFolder;
     private String mFileLastModifiedDate;
     private String mFileLastModifiedTime;
+    private boolean mIsChecked;
 
     public FileInfo(Context context, String path){
         if(path != null){
@@ -70,6 +71,7 @@ public class FileInfo {
             mParentFileAbsolutePath = getParentPath(path);
             mFileLastModifiedDate = getLastModifiedDate(mFile);
             mFileLastModifiedTime = getLastModifiedTime(mFile);
+            mIsChecked = false;
         }
     }
 
@@ -269,6 +271,14 @@ public class FileInfo {
 
     public String getFileLastModifiedTime() {
         return mFileLastModifiedTime;
+    }
+
+    public void setChecked(boolean isChecked){
+        mIsChecked = isChecked;
+    }
+
+    public boolean isChecked(){
+        return mIsChecked;
     }
 
     /**

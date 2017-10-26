@@ -46,7 +46,6 @@
         android:layout_gravity="left"
         android:fitsSystemWindows="true"
         app:itemTextColor="@android:color/black"
-        app:itemIconTint="@color/colorMenuIcon"
         app:headerLayout="@layout/header_main"
         app:menu="@menu/navigation_menu_main"/>
 
