@@ -5,7 +5,7 @@
     android:layout_height="@dimen/fragment_list_item_height"
     android:layout_marginTop="@dimen/fragment_list_margin_top"
     android:paddingLeft="@dimen/fragment_list_padding_left"
-    android:background="@drawable/ripple_bg">
+    android:background="@color/recycler_view_item_normal_bg">
 
     <ImageView
         android:id="@+id/storage_type_image"

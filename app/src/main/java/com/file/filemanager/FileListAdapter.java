@@ -9,14 +9,18 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> {
+public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> implements MainActivity.MainActivityCallBack{
     public static final String TAG = "FileListAdapter";
 
     private Context mContext;
@@ -25,14 +29,16 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     private ListFragment mListFragment;
     private PopupMenu mPopupMenu;
 
+    private int mCheckCount = 0;
+    private boolean[] mIsPositionChecked;
+
     public FileListAdapter(Context context, List<FileInfo> dataList, ListFragment fragment){
         mContext = context;
         mDataList = dataList;
         mInflater = LayoutInflater.from(mContext);
         mListFragment = fragment;
+        mIsPositionChecked = null;
     }
-
-
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -42,7 +48,12 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, int position) {
-        FileInfo fileInfo = mDataList.get(position);
+        final FileInfo fileInfo = mDataList.get(position);
+        if(fileInfo.isChecked()){
+            holder.mWholeView.setSelected(true);
+        }else{
+            holder.mWholeView.setSelected(false);
+        }
         holder.mFileTypeImage.setImageDrawable(fileInfo.getFileTypeImage());
         holder.mFileNameText.setText(fileInfo.getFileName());
         holder.mFileSizeText.setText(fileInfo.getFileSize());
@@ -59,26 +70,31 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             @Override
             public void onClick(View v) {
                 int position = holder.getLayoutPosition();
-                FileInfo fileInfo = mDataList.get(position);
-                if (fileInfo.isFolder()) {
-                    if (fileInfo.getChildFilesCount(mContext) > 0) {
-                        //进入文件夹
-                        Log.d(TAG, fileInfo.getFileAbsolutePath());
-                        mListFragment.showFileList(fileInfo.getFileAbsolutePath());
+
+                if(mCheckCount > 0){
+                    setCheckStatus(fileInfo, position);
+                    notifyItemChanged(position);
+                }else {
+                    if (fileInfo.isFolder()) {
+                        if (fileInfo.getChildFilesCount(mContext) > 0) {
+                            //进入文件夹
+                            Log.d(TAG, fileInfo.getFileAbsolutePath());
+                            mListFragment.showFileList(fileInfo.getFileAbsolutePath());
+                        } else {
+                            Toast.makeText(mContext, mContext.getResources().getString(R.string.empty_folder), Toast.LENGTH_SHORT).show();
+                        }
                     } else {
-                        Toast.makeText(mContext, mContext.getResources().getString(R.string.empty_folder), Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    String mimeType = fileInfo.getMimeType(fileInfo.getFileAbsolutePath());
-                    Log.d(TAG, "mimeType = " + mimeType);
-                    if (null != mimeType) {
-                        Intent intent = new Intent();
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.setAction(Intent.ACTION_VIEW);
-                        intent.setDataAndType(Uri.fromFile(fileInfo.getFile()), mimeType);
-                        mContext.startActivity(intent);
-                    } else {
-                        Toast.makeText(mContext, mContext.getResources().getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
+                        String mimeType = fileInfo.getMimeType(fileInfo.getFileAbsolutePath());
+                        Log.d(TAG, "mimeType = " + mimeType);
+                        if (null != mimeType) {
+                            Intent intent = new Intent();
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.setAction(Intent.ACTION_VIEW);
+                            intent.setDataAndType(Uri.fromFile(fileInfo.getFile()), mimeType);
+                            mContext.startActivity(intent);
+                        } else {
+                            Toast.makeText(mContext, mContext.getResources().getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             }
@@ -88,7 +104,17 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             @Override
             public boolean onLongClick(View v) {
                 int position = holder.getLayoutPosition();
-                // TODO: 2017/7/21 弹出分享/复制/剪切/删除/重命名/详情/收藏菜单
+
+                // TODO: 2017/10/25 放在构造函数中 mDataList.size() 为0？？？
+                if(null == mIsPositionChecked){
+                    mCheckCount = 0;
+                    mIsPositionChecked = new boolean[mDataList.size()];
+                    ((MainActivity) mListFragment.getActivity()).setCallBack(FileListAdapter.this);
+                }
+
+                setCheckStatus(fileInfo, position);
+                notifyItemChanged(position);
+
                 return true;
             }
         });
@@ -126,12 +152,55 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         mPopupMenu.show();
     }
 
+    private void setCheckStatus(FileInfo fileInfo, int position){
+        if(mIsPositionChecked[position]){
+            //取消选中
+            mIsPositionChecked[position] = false;
+            fileInfo.setChecked(false);
+
+            mCheckCount--;
+            if(0 == mCheckCount){
+                ((MainActivity) mListFragment.getActivity()).finishActionMode();
+                mIsPositionChecked = null;
+            }else {
+                ((MainActivity) mListFragment.getActivity()).setItemCountView(mCheckCount + "");
+            }
+        }else{
+            //选中
+            mIsPositionChecked[position] = true;
+            fileInfo.setChecked(true);
+
+            mCheckCount++;
+            if(1 == mCheckCount) {
+                ((MainActivity) mListFragment.getActivity()).startActionMode();
+            }
+            ((MainActivity) mListFragment.getActivity()).setItemCountView(mCheckCount + "");
+        }
+
+        mDataList.set(position, fileInfo);
+    }
+
     @Override
     public int getItemCount() {
         return mDataList.size();
     }
 
+    @Override
+    public void cleanCheck() {
+        for(int i = 0; i < mDataList.size(); i++){
+            FileInfo fileInfo = mDataList.get(i);
+            if(fileInfo.isChecked()) {
+                fileInfo.setChecked(false);
+                mDataList.set(i, fileInfo);
+            }
+        }
+
+        mIsPositionChecked = null;
+        notifyDataSetChanged();
+    }
+
     public static class MyViewHolder extends RecyclerView.ViewHolder {
+        public View mWholeView;
         public ImageView mFileTypeImage;
         public TextView mFileNameText;
         public TextView mFileSizeText;
@@ -141,6 +210,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
         public MyViewHolder(View view) {
             super(view);
+            mWholeView = (RelativeLayout) view.findViewById(R.id.file_list_item_view);
             mFileTypeImage = (ImageView) view.findViewById(R.id.file_type_image);
             mFileNameText = (TextView) view.findViewById(R.id.file_name_text);
             mLastModifiedDateText = (TextView) view.findViewById(R.id.last_change_date_text);

@@ -35,4 +35,12 @@
     <string name="encryption">Encryption</string>
     <string name="share">Share</string>
     <string name="detail">Detail</string>
+    <string name="overflow">Overflow</string>
+
+    <string name="paste">Paste</string>
+    <string name="search">Search</string>
+    <string name="home">Home</string>
+    <string name="sort">Sort</string>
+    <string name="sort_by">Sort By</string>
+    <string name="directory_sort_mode">Directory Sort Mode</string>
 </resources>

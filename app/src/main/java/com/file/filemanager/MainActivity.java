@@ -13,8 +13,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.view.ActionMode;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,6 +28,11 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private MyFragmentPagerAdapter mAdapter;
     public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
+
+    private ActionMode mActionMode;
+    private TextView mItemCountView;
+    private View mActionModeView;
+    private MainActivityCallBack mCallBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +93,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.toolbar_normal_menu_option, menu);
+        return true;
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -106,4 +123,58 @@ public class MainActivity extends AppCompatActivity {
 
         super.onBackPressed();
     }
+
+    public void startActionMode(){
+        mActionMode = startSupportActionMode(mActionModeCallback);
+    }
+
+    public void finishActionMode(){
+        mActionMode.finish();
+    }
+
+    public void setItemCountView(String count){
+        if(null != mItemCountView){
+            mItemCountView.setText(count);
+        }
+    }
+
+    public void setCallBack(MainActivityCallBack callBack){
+        mCallBack = callBack;
+    }
+
+    public interface MainActivityCallBack{
+        void cleanCheck();
+    }
+
+    public ActionMode.Callback mActionModeCallback = new ActionMode.Callback(){
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            mActionModeView = getLayoutInflater().inflate(R.layout.action_mode, null);
+            mode.setCustomView(mActionModeView);
+
+            mItemCountView = (TextView) mActionModeView.findViewById(R.id.item_count);
+
+            inflater.inflate(R.menu.toolbar_click_menu_option, menu);
+
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return true;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            Log.d("huangcx", "onDestroyActionMode");
+            mCallBack.cleanCheck();
+        }
+    };
 }
