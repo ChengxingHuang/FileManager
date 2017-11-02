@@ -173,6 +173,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             mCheckCount++;
             if(1 == mCheckCount) {
                 ((MainActivity) mListFragment.getActivity()).startActionMode();
+                mListFragment.setFloatActionButtonVisibility(View.INVISIBLE);
             }
             ((MainActivity) mListFragment.getActivity()).setItemCountView(mCheckCount + "");
         }
@@ -196,6 +197,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         }
 
         mIsPositionChecked = null;
+        mListFragment.setFloatActionButtonVisibility(View.VISIBLE);
         notifyDataSetChanged();
     }
 

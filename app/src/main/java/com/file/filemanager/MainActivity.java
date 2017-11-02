@@ -173,7 +173,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onDestroyActionMode(ActionMode mode) {
-            Log.d("huangcx", "onDestroyActionMode");
             mCallBack.cleanCheck();
         }
     };

@@ -3,6 +3,7 @@ package com.file.filemanager;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -31,6 +32,7 @@ public class ListFragment extends Fragment {
 
     private Context mContext;
     private RecyclerView mRecyclerView;
+    private FloatingActionButton mFloatingActionButton;
 
     private List<LastPosition> mLastPositionList = new ArrayList<LastPosition>();
     private int mCurPathLevel;
@@ -65,6 +67,15 @@ public class ListFragment extends Fragment {
             }
         });
 
+        mFloatingActionButton = (FloatingActionButton)v.findViewById(R.id.floatingActionButton);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO: 2017/11/2 弹出新建文件夹窗口
+                Log.d("huangcx", "mFloatingActionButton click");
+            }
+        });
+
         mLastPositionList.clear();
         mCurPathLevel = 0;
 
@@ -86,6 +97,10 @@ public class ListFragment extends Fragment {
         }
 
         return v;
+    }
+
+    public void setFloatActionButtonVisibility(int visibility){
+        mFloatingActionButton.setVisibility(visibility);
     }
 
     /**
