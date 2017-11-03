@@ -32,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     private ActionMode mActionMode;
     private TextView mItemCountView;
     private View mActionModeView;
+    private Menu mClickMenu;
+    private Menu mNormalMenu;
     private MainActivityCallBack mCallBack;
 
     @Override
@@ -95,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_normal_menu_option, menu);
+        mNormalMenu = menu;
         return true;
     }
 
@@ -132,6 +135,15 @@ public class MainActivity extends AppCompatActivity {
         mActionMode.finish();
     }
 
+    public void setPasteIconVisible(boolean visible){
+        mNormalMenu.findItem(R.id.action_paste).setVisible(visible);
+    }
+
+    public void setRenameAndDetailMenuVisible(boolean visible){
+        mClickMenu.findItem(R.id.detail).setVisible(visible);
+        mClickMenu.findItem(R.id.rename).setVisible(visible);
+    }
+
     public void setItemCountView(String count){
         if(null != mItemCountView){
             mItemCountView.setText(count);
@@ -157,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
             mItemCountView = (TextView) mActionModeView.findViewById(R.id.item_count);
 
             inflater.inflate(R.menu.toolbar_click_menu_option, menu);
+            mClickMenu = menu;
 
             return true;
         }

@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -176,6 +177,12 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 mListFragment.setFloatActionButtonVisibility(View.INVISIBLE);
             }
             ((MainActivity) mListFragment.getActivity()).setItemCountView(mCheckCount + "");
+        }
+
+        if(mCheckCount > 1){
+            ((MainActivity) mListFragment.getActivity()).setRenameAndDetailMenuVisible(false);
+        }else{
+            ((MainActivity) mListFragment.getActivity()).setRenameAndDetailMenuVisible(true);
         }
 
         mDataList.set(position, fileInfo);
