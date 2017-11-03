@@ -6,6 +6,7 @@
         android:id="@+id/action_paste"
         android:title="@string/paste"
         android:icon="@drawable/action_paste"
+        android:visible="false"
         app:showAsAction="ifRoom"/>
 
     <item
