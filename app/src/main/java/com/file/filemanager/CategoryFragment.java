@@ -1,5 +1,6 @@
 package com.file.filemanager;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -9,12 +10,22 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.SimpleAdapter;
 
+import com.github.mikephil.charting.animation.Easing;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.github.mikephil.charting.utils.ColorTemplate;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CategoryFragment extends Fragment {
+public class CategoryFragment extends Fragment implements OnChartValueSelectedListener {
 
     public static final int CATEGORY_GRID_COUNT = 9;
     public static final String KEY_ICON = "icon";
@@ -29,9 +40,13 @@ public class CategoryFragment extends Fragment {
                     R.string.category_document, R.string.category_qq, R.string.category_wechat,
                     R.string.category_apk, R.string.category_favorite, R.string.category_encryption};
 
+    private int[] mChartParties = {R.string.category_image, R.string.category_music, R.string.category_video,
+                    R.string.category_document, R.string.category_apk, R.string.category_others};
+
     private List<Map<String, Object>> mDataList = new ArrayList<Map<String, Object>>();
 
     private GridView mCategoryGrid;
+    private PieChart mChart;
 
     public CategoryFragment() {
     }
@@ -76,7 +91,95 @@ public class CategoryFragment extends Fragment {
             }
         });
 
+        mChart = (PieChart)v.findViewById(R.id.chart);
+        mChart.setUsePercentValues(true);
+        mChart.setExtraOffsets(5, 10, 5, 5);
+
+        mChart.setDragDecelerationFrictionCoef(0.95f);
+
+        mChart.setDrawHoleEnabled(false);
+
+        mChart.setTransparentCircleColor(Color.WHITE);
+        mChart.setTransparentCircleAlpha(110);
+
+        mChart.setHoleRadius(58f);
+        mChart.setTransparentCircleRadius(61f);
+
+        mChart.setDrawCenterText(true);
+
+        mChart.setRotationAngle(0);
+        // enable rotation of the chart by touch
+        mChart.setRotationEnabled(true);
+        mChart.setHighlightPerTapEnabled(true);
+
+        // add a selection listener
+        mChart.setOnChartValueSelectedListener(this);
+
+        setData(5, 100);
+
+        mChart.animateY(1400, Easing.EasingOption.EaseInOutQuad);
+
         return v;
+    }
+
+    private void setData(int count, float range) {
+        float mult = range;
+        ArrayList<Entry> yValues1 = new ArrayList<Entry>();
+
+        // IMPORTANT: In a PieChart, no values (Entry) should have the same
+        // xIndex (even if from different DataSets), since no values can be
+        // drawn above each other.
+        for (int i = 0; i < count + 1; i++) {
+            yValues1.add(new Entry((float) (Math.random() * mult) + mult / 5, i));
+        }
+
+        ArrayList<String> xValues = new ArrayList<String>();
+
+        for (int i = 0; i < count + 1; i++)
+            xValues.add(getActivity().getResources().getString(mChartParties[i % mChartParties.length]));
+
+        PieDataSet dataSet = new PieDataSet(yValues1, "");
+        dataSet.setSliceSpace(3f);
+        dataSet.setSelectionShift(5f);
+
+        // add a lot of colors
+
+        ArrayList<Integer> colors = new ArrayList<Integer>();
+
+        for (int c : ColorTemplate.VORDIPLOM_COLORS)
+            colors.add(c);
+
+        for (int c : ColorTemplate.JOYFUL_COLORS)
+            colors.add(c);
+
+        for (int c : ColorTemplate.COLORFUL_COLORS)
+            colors.add(c);
+
+        for (int c : ColorTemplate.LIBERTY_COLORS)
+            colors.add(c);
+
+        for (int c : ColorTemplate.PASTEL_COLORS)
+            colors.add(c);
+
+        for (int c : ColorTemplate.COLORFUL_COLORS)
+            colors.add(c);
+
+        colors.add(ColorTemplate.getHoloBlue());
+
+        dataSet.setColors(colors);
+
+        PieData data = new PieData(xValues, dataSet);
+        data.setValueFormatter(new PercentFormatter());
+        data.setValueTextSize(13f);
+        data.setValueTextColor(Color.BLACK);
+        //data.setValueTypeface(tf);
+        mChart.setData(data);
+        mChart.setDescription("");
+
+        // undo all highlights
+        mChart.highlightValues(null);
+
+        mChart.invalidate();
     }
 
     private void initData(){
@@ -90,5 +193,15 @@ public class CategoryFragment extends Fragment {
 
             mDataList.add(map);
         }
+    }
+
+    @Override
+    public void onValueSelected(Entry entry, int i, Highlight highlight) {
+
+    }
+
+    @Override
+    public void onNothingSelected() {
+
     }
 }
