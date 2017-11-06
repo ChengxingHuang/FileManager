@@ -10,6 +10,7 @@
     <string name="category_apk">APK</string>
     <string name="category_favorite">Favorite</string>
     <string name="category_encryption">Encryption</string>
+    <string name="category_others">Others</string>
 
     <string name="category_storage">Category Storage</string>
     <string name="phone_storage">Phone Storage</string>
@@ -43,4 +44,8 @@
     <string name="sort">Sort</string>
     <string name="sort_by">Sort By</string>
     <string name="directory_sort_mode">Directory Sort Mode</string>
+
+    <string name="switch_sd_card">Show SD Card</string>
+    <string name="switch_phone">Show Phone</string>
+
 </resources>

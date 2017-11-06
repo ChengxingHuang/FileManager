@@ -45,7 +45,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="left"
         android:fitsSystemWindows="true"
-        app:itemTextColor="@android:color/black"
+        app:itemTextColor="#3F3F3F"
         app:headerLayout="@layout/header_main"
         app:menu="@menu/navigation_menu_main"/>
 
