@@ -31,4 +31,9 @@
         <item name="android:background">@android:color/holo_blue_light</item>
     </style>
 
+    <style name="AlertDialogCustom">
+        <item name="android:textColorPrimary">@android:color/black</item>
+        <item name="android:textColorSecondary">#6E6E6E</item>
+    </style>
+
 </resources>

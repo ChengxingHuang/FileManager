@@ -151,7 +151,7 @@ public class ListFragment extends Fragment {
                 for (int i = 0; i < fileArray.length; i++) {
                     FileInfo fileInfo = new FileInfo(mContext, params[0] + '/' + fileArray[i]);
                     // 是否为隐藏文件
-                    boolean canShowHideFile = PreferenceUtils.canShowHideFile(mContext);
+                    boolean canShowHideFile = PreferenceUtils.getShowHideFileValue(mContext);
                     if (!canShowHideFile && fileInfo.isHideFileType()) {
                         continue;
                     }
@@ -159,9 +159,9 @@ public class ListFragment extends Fragment {
                     mFileList.add(fileInfo);
                 }
                 //对文件列表进行排序
-                boolean isFirstShowFolder = PreferenceUtils.isFirstShowFolder(mContext);
-                boolean isAscending = PreferenceUtils.isAscending(mContext);
-                Collections.sort(mFileList, new FileInfo.NameComparator(isFirstShowFolder, isAscending));
+                int directorSortMode = PreferenceUtils.getDirectorSortModeValue(mContext);
+                boolean orderType = PreferenceUtils.getOrderTypeValue(mContext);
+                Collections.sort(mFileList, new FileInfo.NameComparator(directorSortMode, orderType));
             }else{
                 return ERROR_CODE_CHILD_LIST_EMPTY;
             }

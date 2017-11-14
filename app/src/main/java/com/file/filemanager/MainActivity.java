@@ -1,6 +1,7 @@
 package com.file.filemanager;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
@@ -80,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
                 // TODO: 2017/7/19 根据点击的item，跳转到不同的activity 
                 switch (itemId){
                     case R.id.menu_setting:
+                        Intent i = new Intent(MainActivity.this, SettingActivity.class);
+                        startActivity(i);
                         break;
                     case R.id.menu_feedback:
                         break;

@@ -285,7 +285,7 @@ public class FileInfo {
      * 获取文件夹中包含多少子文件
      */
     public int getChildFilesCount(Context context){
-        boolean canShowHideFile = PreferenceUtils.canShowHideFile(context);
+        boolean canShowHideFile = PreferenceUtils.getShowHideFileValue(context);
 
         if(canShowHideFile){
             return mFile.list().length;
@@ -382,11 +382,11 @@ public class FileInfo {
     }
 
     static class NameComparator implements Comparator{
-        private boolean mIsFolderFirst = true;
+        private int mDirectorSortMode = 0;
         private boolean mIsAsc = true;
 
-        public NameComparator(boolean isFolderFirst, boolean isAsc){
-            mIsFolderFirst = isFolderFirst;
+        public NameComparator(int directorSortMode, boolean isAsc){
+            mDirectorSortMode = directorSortMode;
             mIsAsc = isAsc;
         }
 
@@ -405,7 +405,7 @@ public class FileInfo {
                     return s2.compareTo(s1);
                 }
             }else{
-                if(mIsFolderFirst){
+                if(mDirectorSortMode == 1){
                     if(b1){
                         return -1;
                     }
