@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="directory_sort_mode">
+        <item>@string/folder_on_top</item>
+        <item>@string/file_on_top</item>
+        <item>@string/none_on_top</item>
+    </string-array>
+
+    <string-array name="sort_by">
+        <item>@string/name</item>
+        <item>@string/size</item>
+        <item>@string/type</item>
+        <item>@string/last_modify</item>
+    </string-array>
+</resources>

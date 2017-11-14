@@ -43,9 +43,23 @@
     <string name="home">Home</string>
     <string name="sort">Sort</string>
     <string name="sort_by">Sort By</string>
+    <string name="name">Name</string>
+    <string name="size">Size</string>
+    <string name="type">Type</string>
+    <string name="last_modify">Last modified</string>
     <string name="directory_sort_mode">Directory Sort Mode</string>
+    <string name="folder_on_top">Folders on top</string>
+    <string name="file_on_top">File on top</string>
+    <string name="none_on_top">None on top</string>
 
     <string name="switch_sd_card">Show SD Card</string>
     <string name="switch_phone">Show Phone</string>
 
+    <string name="ascending">Ascending</string>
+    <string name="ascending_subtitle">Use ascending order</string>
+    <string name="show_hide_files">Show hide files</string>
+    <string name="show_hide_files_subtitle">Show the files start with .</string>
+    <string name="filter_small_pictures">Filter small size pictures</string>
+    <string name="filter_small_pictures_subtitle">Don\'t show the pictures size less 30kb</string>
+    <string name="file_sort_type">Filter small size pictures</string>
 </resources>
