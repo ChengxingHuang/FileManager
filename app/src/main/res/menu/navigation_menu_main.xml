@@ -5,14 +5,6 @@
         android:icon="@drawable/ic_menu_setting"
         android:title="@string/menu_setting"/>
     <item
-        android:id="@+id/menu_feedback"
-        android:icon="@drawable/ic_menu_feedback"
-        android:title="@string/menu_feedback"/>
-    <item
-        android:id="@+id/menu_sponsor"
-        android:icon="@drawable/ic_menu_sponsor"
-        android:title="@string/menu_sponsor"/>
-    <item
         android:id="@+id/menu_about"
         android:icon="@drawable/ic_menu_about"
         android:title="@string/menu_about"/>

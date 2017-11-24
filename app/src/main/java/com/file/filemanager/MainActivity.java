@@ -80,16 +80,16 @@ public class MainActivity extends AppCompatActivity {
                 int itemId = item.getItemId();
                 // TODO: 2017/7/19 根据点击的item，跳转到不同的activity 
                 switch (itemId){
-                    case R.id.menu_setting:
+                    case R.id.menu_setting: {
                         Intent i = new Intent(MainActivity.this, SettingActivity.class);
                         startActivity(i);
                         break;
-                    case R.id.menu_feedback:
+                    }
+                    case R.id.menu_about: {
+                        Intent i = new Intent(MainActivity.this, AboutActivity.class);
+                        startActivity(i);
                         break;
-                    case R.id.menu_sponsor:
-                        break;
-                    case R.id.menu_about:
-                        break;
+                    }
                 }
                 //关闭NavigationView
                 mDrawerLayout.closeDrawer(GravityCompat.START);
