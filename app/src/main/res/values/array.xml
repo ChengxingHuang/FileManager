@@ -12,4 +12,13 @@
         <item>@string/type</item>
         <item>@string/last_modify</item>
     </string-array>
+
+    <string-array name="about">
+        <item>@string/version</item>
+        <item>@string/developer</item>
+        <item>@string/git_report</item>
+        <item>@string/mail_report</item>
+        <item>@string/wechat_donate</item>
+        <item>@string/alipay_donate</item>
+    </string-array>
 </resources>

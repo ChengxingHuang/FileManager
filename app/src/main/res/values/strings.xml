@@ -62,4 +62,18 @@
     <string name="filter_small_pictures">Filter small size pictures</string>
     <string name="filter_small_pictures_subtitle">Don\'t show the pictures size less 30kb</string>
     <string name="file_sort_type">Filter small size pictures</string>
+
+    <string name="version">Version</string>
+    <string name="developer">Developer</string>
+    <string name="git_report">Report bugs or new feature request via GitHub</string>
+    <string name="mail_report">Report bugs or new feature request via Email</string>
+    <string name="wechat_donate">Wechat Donate</string>
+    <string name="alipay_donate">Alipay Donate</string>
+    <string name="wechat_donate_subtitle">Use WeChat to sponsor the author</string>
+    <string name="alipay_donate_subtitle">Use AliPay to sponsor the author</string>
+
+    <string name="v1_0_0" translatable="false">v1.0.0</string>
+    <string name="chengxing_huang" translatable="false">ChengxingHuang</string>
+    <string name="git_issue" translatable="false">https://github.com/ChengxingHuang/FileManager/issues/</string>
+    <string name="mail_address" translatable="false">chengxinghuang@126.com</string>
 </resources>
