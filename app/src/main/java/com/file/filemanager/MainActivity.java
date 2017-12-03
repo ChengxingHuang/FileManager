@@ -1,6 +1,7 @@
 package com.file.filemanager;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
@@ -9,12 +10,16 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ActionMode;
+import android.support.v7.view.ContextThemeWrapper;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
@@ -36,6 +41,12 @@ public class MainActivity extends AppCompatActivity {
     private Menu mClickMenu;
     private Menu mNormalMenu;
     private MainActivityCallBack mCallBack;
+
+    private MenuItem mPasteMenuItem;
+    private MenuItem mSearchMenuItem;
+    private MenuItem mHomeMenuItem;
+    private MenuItem mSortMenuItem;
+    private SearchView mSearchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
-                // TODO: 2017/7/19 根据点击的item，跳转到不同的activity 
                 switch (itemId){
                     case R.id.menu_setting: {
                         Intent i = new Intent(MainActivity.this, SettingActivity.class);
@@ -102,7 +112,88 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_normal_menu_option, menu);
         mNormalMenu = menu;
+        mPasteMenuItem = mNormalMenu.findItem(R.id.action_paste);
+        mSearchMenuItem = mNormalMenu.findItem(R.id.action_search);
+        mHomeMenuItem = mNormalMenu.findItem(R.id.action_home);
+        mSortMenuItem = mNormalMenu.findItem(R.id.action_sort);
+
+        mSearchView = (SearchView) MenuItemCompat.getActionView(mSearchMenuItem);
+        mSearchView.setQueryHint(getResources().getString(R.string.search_files));
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // TODO: 2017/12/3 查找 
+                Log.d("huangcx", "input text = " + newText);
+                return true;
+            }
+        });
+        mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(!hasFocus) {
+                    mSearchView.onActionViewCollapsed();
+                }
+            }
+        });
+
+        mNormalMenu.findItem(R.id.sort_by).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                showSortByDialog();
+                return true;
+            }
+        });
+        mNormalMenu.findItem(R.id.directory_sort_mode).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                showDirectorySortModeDialog();
+                return true;
+            }
+        });
+
         return true;
+    }
+
+    private void showSortByDialog(){
+        int defaultSortBy = PreferenceUtils.getSortByValue(MainActivity.this);
+        String[] sortByString = getResources().getStringArray(R.array.sort_by);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+        AlertDialog dialog = builder.create();
+        builder.setTitle(R.string.sort_by);
+        builder.setSingleChoiceItems(sortByString, defaultSortBy, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                PreferenceUtils.setSortByValue(MainActivity.this, which);
+                mAdapter.notifyDataSetChanged();
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    private void showDirectorySortModeDialog(){
+        int defaultDirectorySortMode = PreferenceUtils.getDirectorSortModeValue(MainActivity.this);
+        String[] directorySortModeString = getResources().getStringArray(R.array.directory_sort_mode);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+        AlertDialog dialog = builder.create();
+        builder.setTitle(R.string.directory_sort_mode);
+        builder.setSingleChoiceItems(directorySortModeString, defaultDirectorySortMode, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                PreferenceUtils.setDirectorSortModeValue(MainActivity.this, which);
+                mAdapter.notifyDataSetChanged();
+                dialog.dismiss();
+            }
+        });
+
+        builder.show();
     }
 
     @Override
@@ -140,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setPasteIconVisible(boolean visible){
-        mNormalMenu.findItem(R.id.action_paste).setVisible(visible);
+        mPasteMenuItem.setVisible(visible);
     }
 
     public void setRenameAndDetailMenuVisible(boolean visible){

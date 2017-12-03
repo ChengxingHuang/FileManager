@@ -76,4 +76,6 @@
     <string name="chengxing_huang" translatable="false">ChengxingHuang</string>
     <string name="git_issue" translatable="false">https://github.com/ChengxingHuang/FileManager/issues/</string>
     <string name="mail_address" translatable="false">chengxinghuang@126.com</string>
+
+    <string name="search_files">Search files</string>
 </resources>
