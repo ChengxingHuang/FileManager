@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.MOUNT_UNMOUNT_FILESYSTEMS"/>
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- android:windowSoftInputMode="adjustPan" 这个属性不会在SearchView打开软键盘时影响布局 -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -15,6 +16,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".MainActivity"
+            android:windowSoftInputMode="adjustPan"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

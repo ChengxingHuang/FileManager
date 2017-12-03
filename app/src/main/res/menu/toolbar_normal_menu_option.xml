@@ -2,17 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/action_paste"
-        android:title="@string/paste"
-        android:icon="@drawable/action_paste"
-        android:visible="false"
-        app:showAsAction="ifRoom"/>
-
+    <!-- app:actionViewClass设置这个item的class，可以设置view -->
     <item
         android:id="@+id/action_search"
         android:title="@string/search"
         android:icon="@drawable/action_search"
+        app:showAsAction="always"
+        app:actionViewClass="android.support.v7.widget.SearchView"/>
+
+    <item
+        android:id="@+id/action_paste"
+        android:title="@string/paste"
+        android:icon="@drawable/action_paste"
+        android:visible="true"
         app:showAsAction="ifRoom"/>
 
     <item
