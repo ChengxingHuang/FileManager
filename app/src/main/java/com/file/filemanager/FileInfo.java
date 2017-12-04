@@ -1,5 +1,6 @@
 package com.file.filemanager;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -261,6 +262,30 @@ public class FileInfo {
         return mFileSize;
     }
 
+    public long getFolderSize(File file){
+        if (file.exists()) {
+            //如果是目录则递归计算其内容的总大小
+            if (file.isDirectory()) {
+                File[] children = file.listFiles();
+                long size = 0;
+                for (File f : children) {
+                    if(f.getName().startsWith(".") && !PreferenceUtils.getShowHideFileValue(mContext))
+                        break;
+                    size += getFolderSize(f);
+                }
+                return size;
+            } else {
+                if(file.getName().startsWith(".") && !PreferenceUtils.getShowHideFileValue(mContext)){
+                    return 0;
+                }else {
+                    return file.length();
+                }
+            }
+        }else{
+            return -1;
+        }
+    }
+
     public boolean isFolder() {
         return mIsFolder;
     }
@@ -382,12 +407,66 @@ public class FileInfo {
     }
 
     static class NameComparator implements Comparator{
+        private int mSortBy = 0;
         private int mDirectorSortMode = 0;
         private boolean mIsAsc = true;
 
-        public NameComparator(int directorSortMode, boolean isAsc){
-            mDirectorSortMode = directorSortMode;
-            mIsAsc = isAsc;
+        public NameComparator(Context context){
+            mSortBy = PreferenceUtils.getSortByValue(context);
+            mDirectorSortMode = PreferenceUtils.getDirectorSortModeValue(context);
+            mIsAsc = PreferenceUtils.getOrderTypeValue(context);
+        }
+
+        private int sort(Object o1, Object o2){
+            if (mSortBy == PreferenceUtils.SORT_BY_NAME) {
+                String s1 = ((FileInfo) o1).getFileName().toUpperCase();
+                String s2 = ((FileInfo) o2).getFileName().toUpperCase();
+
+                if (mIsAsc == PreferenceUtils.ORDER_TYPE_ASCEND) {
+                    return s1.compareTo(s2);
+                } else {
+                    return s2.compareTo(s1);
+                }
+            }else if(mSortBy == PreferenceUtils.SORT_BY_TYPE){
+                // FIXME: 2017/12/4 类型只针对文件，通过后缀判断，可能需要修改
+                if(!((FileInfo) o1).isFolder() && !((FileInfo) o2).isFolder()) {
+                    String[] tmp1 = ((FileInfo) o1).getFileName().split("\\.");
+                    String[] tmp2 = ((FileInfo) o2).getFileName().split("\\.");
+                    String suffix1 = tmp1[tmp1.length - 1];
+                    String suffix2 = tmp2[tmp2.length - 1];
+
+                    return suffix1.compareTo(suffix2);
+                }else {
+                    String s1 = ((FileInfo) o1).getFileName().toUpperCase();
+                    String s2 = ((FileInfo) o2).getFileName().toUpperCase();
+
+                    if (mIsAsc == PreferenceUtils.ORDER_TYPE_ASCEND) {
+                        return s1.compareTo(s2);
+                    } else {
+                        return s2.compareTo(s1);
+                    }
+                }
+            }else if(mSortBy == PreferenceUtils.SORT_BY_SIZE){
+                long s1 = ((FileInfo) o1).getFolderSize(((FileInfo) o1).getFile());
+                long s2 = ((FileInfo) o2).getFolderSize(((FileInfo) o2).getFile());
+
+                if (mIsAsc == PreferenceUtils.ORDER_TYPE_ASCEND) {
+                    return s1 > s2 ? 1 : -1;
+                } else {
+                    return s1 < s2 ? 1 : -1;
+                }
+            }else if(mSortBy == PreferenceUtils.SORT_BY_LAST_MODIFY){
+                long s1 = ((FileInfo) o1).getFile().lastModified();
+                long s2 = ((FileInfo) o2).getFile().lastModified();
+
+                if (mIsAsc == PreferenceUtils.ORDER_TYPE_ASCEND) {
+                    return s1 > s2 ? 1 : -1;
+                } else {
+                    return s1 < s2 ? 1 : -1;
+                }
+            }
+
+            return 1;
         }
 
         @Override
@@ -395,26 +474,16 @@ public class FileInfo {
             boolean b1 = ((FileInfo)o1).isFolder();
             boolean b2 = ((FileInfo)o2).isFolder();
 
-            if(b1 == b2) {
-                String s1 = ((FileInfo) o1).getFileName().toUpperCase();
-                String s2 = ((FileInfo) o2).getFileName().toUpperCase();
-
-                if (mIsAsc) {
-                    return s1.compareTo(s2);
-                } else {
-                    return s2.compareTo(s1);
-                }
-            }else{
-                if(mDirectorSortMode == 1){
-                    if(b1){
-                        return -1;
-                    }
-                    return 1;
-                }else{
-                    if(b1){
-                        return 1;
-                    }
+            if (b1 == b2) {
+                return sort(o1, o2);
+            } else {
+                if(((mDirectorSortMode == PreferenceUtils.DIRECTOR_SORT_MODE_FOLDER_ON_TOP) && b1)
+                        || (mDirectorSortMode == PreferenceUtils.DIRECTOR_SORT_MODE_FILE_ON_TOP) && b2) {
                     return -1;
+                }else if(mDirectorSortMode == PreferenceUtils.DIRECTOR_SORT_MODE_NONE_ON_TOP){
+                    return sort(o1, o2);
+                }else{
+                    return 1;
                 }
             }
         }

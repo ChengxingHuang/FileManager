@@ -35,12 +35,10 @@ public class ListFragment extends Fragment {
     private FloatingActionButton mFloatingActionButton;
 
     private List<LastPosition> mLastPositionList = new ArrayList<LastPosition>();
-    private int mCurPathLevel;
 
     private String mCurPath;
     private String mRootPath;
     private boolean mIsStorageList = false;
-    private boolean mIsBackToPre = false;
 
     private ArrayList<MountStorageManager.MountStorage> mMountStorageList;
 
@@ -77,7 +75,6 @@ public class ListFragment extends Fragment {
         });
 
         mLastPositionList.clear();
-        mCurPathLevel = 0;
 
         MountStorageManager storageManager = MountStorageManager.getInstance();
         mMountStorageList = storageManager.getMountStorageList();
@@ -88,7 +85,7 @@ public class ListFragment extends Fragment {
             mFileListAdapter = new FileListAdapter(mContext, mFileList, this);
             mRecyclerView.setAdapter(mFileListAdapter);
             mRootPath = mMountStorageList.get(0).mPath;
-            showFileList(mRootPath);
+            enterPath(mRootPath, false);
         }else if(mMountStorageList.size() > 1){
             //显示storage list
             showStorageList();
@@ -129,6 +126,13 @@ public class ListFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateCurrentList();
+        // TODO: 2017/12/4 设置完排序方式后mLastPositionList需要被清空
+    }
+
     class LastPosition{
         int mLastTopOffset;
         int mLastPosition;
@@ -146,7 +150,6 @@ public class ListFragment extends Fragment {
 
             if(null != fileArray && fileArray.length > 0) {
                 mFileList.clear();
-                mCurPath = params[0];
 
                 for (int i = 0; i < fileArray.length; i++) {
                     FileInfo fileInfo = new FileInfo(mContext, params[0] + '/' + fileArray[i]);
@@ -159,9 +162,7 @@ public class ListFragment extends Fragment {
                     mFileList.add(fileInfo);
                 }
                 //对文件列表进行排序
-                int directorSortMode = PreferenceUtils.getDirectorSortModeValue(mContext);
-                boolean orderType = PreferenceUtils.getOrderTypeValue(mContext);
-                Collections.sort(mFileList, new FileInfo.NameComparator(directorSortMode, orderType));
+                Collections.sort(mFileList, new FileInfo.NameComparator(getActivity()));
             }else{
                 return ERROR_CODE_CHILD_LIST_EMPTY;
             }
@@ -173,10 +174,7 @@ public class ListFragment extends Fragment {
         protected void onPostExecute(Integer integer) {
             if(ERROR_CODE_SUCCESS == integer) {
                 mFileListAdapter.notifyDataSetChanged();
-                if(mIsBackToPre) {
-                    scrollToPosition();
-                    mIsBackToPre = false;
-                }
+                scrollToPosition();
             }else if(ERROR_CODE_CHILD_LIST_EMPTY == integer){
                 // TODO: 2017/9/25 这样log要显示具体的路径
                 Log.d(TAG, "this folder is empty");
@@ -184,22 +182,6 @@ public class ListFragment extends Fragment {
                 // TODO: 2017/9/25 这样log要显示具体的路径
                 Log.d(TAG, "enter a error path");
             }
-        }
-    }
-
-    public void showFileList(String path){
-        ShowListAsyncTask task = new ShowListAsyncTask();
-        task.execute(path);
-
-        if(mIsBackToPre){
-            mCurPathLevel--;
-            mLastPositionList.remove(mLastPositionList.size() - 1);
-        }else{
-            LastPosition pos = new LastPosition();
-            pos.mLastPosition = -1;
-            pos.mLastTopOffset = -1;
-            mLastPositionList.add(pos);
-            mCurPathLevel++;
         }
     }
 
@@ -235,8 +217,8 @@ public class ListFragment extends Fragment {
             mCurPath = mCurPath.substring(0, mCurPath.lastIndexOf("/"));
 
             if (mCurPath.length() >= mRootPath.length()) {
-                mIsBackToPre = true;
-                showFileList(mCurPath);
+                updateCurrentList();
+                mLastPositionList.remove(mLastPositionList.size() - 1);
                 return true;
             } else if (mMountStorageList.size() > 1 && !mIsStorageList) {
                 mIsStorageList = true;
@@ -250,5 +232,22 @@ public class ListFragment extends Fragment {
         }else{
             return false;
         }
+    }
+
+    public void updateCurrentList(){
+        ShowListAsyncTask task = new ShowListAsyncTask();
+        task.execute(mCurPath);
+    }
+
+    public void enterPath(String absolutePath, boolean needToUpdate){
+        mCurPath = absolutePath;
+        if(needToUpdate) {
+            updateCurrentList();
+        }
+
+        LastPosition pos = new LastPosition();
+        pos.mLastPosition = -1;
+        pos.mLastTopOffset = -1;
+        mLastPositionList.add(pos);
     }
 }

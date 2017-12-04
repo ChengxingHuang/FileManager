@@ -48,4 +48,10 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
             return false;
         }
     }
+
+    public void updateCurrentList(){
+        if(null != mListFragment) {
+            mListFragment.updateCurrentList();
+        }
+    }
 }

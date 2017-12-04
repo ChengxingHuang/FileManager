@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 PreferenceUtils.setSortByValue(MainActivity.this, which);
-                mAdapter.notifyDataSetChanged();
+                mAdapter.updateCurrentList();
                 dialog.dismiss();
             }
         });
@@ -188,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 PreferenceUtils.setDirectorSortModeValue(MainActivity.this, which);
-                mAdapter.notifyDataSetChanged();
+                mAdapter.updateCurrentList();
                 dialog.dismiss();
             }
         });
