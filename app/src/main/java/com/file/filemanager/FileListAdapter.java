@@ -80,7 +80,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                         if (fileInfo.getChildFilesCount(mContext) > 0) {
                             //进入文件夹
                             Log.d(TAG, fileInfo.getFileAbsolutePath());
-                            mListFragment.showFileList(fileInfo.getFileAbsolutePath());
+                            mListFragment.enterPath(fileInfo.getFileAbsolutePath(), true);
                         } else {
                             Toast.makeText(mContext, mContext.getResources().getString(R.string.empty_folder), Toast.LENGTH_SHORT).show();
                         }

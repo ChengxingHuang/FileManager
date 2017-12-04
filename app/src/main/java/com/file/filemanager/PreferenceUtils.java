@@ -15,6 +15,16 @@ public class PreferenceUtils {
     public static final String COMMON_SETTING_DIRECTOR_SORT_MODE = "director_sort_mode";
     public static final String COMMON_SETTING_SORT_BY = "sort_by";
 
+    public static final boolean ORDER_TYPE_ASCEND = true;
+    public static final boolean ORDER_TYPE_DESCEND = false;
+    public static final int SORT_BY_NAME = 0;
+    public static final int SORT_BY_SIZE = 1;
+    public static final int SORT_BY_TYPE = 2;
+    public static final int SORT_BY_LAST_MODIFY = 3;
+    public static final int DIRECTOR_SORT_MODE_FOLDER_ON_TOP = 0;
+    public static final int DIRECTOR_SORT_MODE_FILE_ON_TOP = 1;
+    public static final int DIRECTOR_SORT_MODE_NONE_ON_TOP = 2;
+
     public static boolean getOrderTypeValue(Context context){
         SharedPreferences sh = context.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
         return sh.getBoolean(COMMON_SETTING_ORDER_TYPE, true);
