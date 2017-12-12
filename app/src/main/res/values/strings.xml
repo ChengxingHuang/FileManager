@@ -9,7 +9,7 @@
     <string name="category_wechat">WeChat</string>
     <string name="category_apk">APK</string>
     <string name="category_favorite">Favorite</string>
-    <string name="category_encryption">Encryption</string>
+    <string name="category_archive">Archive</string>
     <string name="category_others">Others</string>
 
     <string name="category_storage">Category Storage</string>
@@ -78,4 +78,13 @@
     <string name="mail_address" translatable="false">chengxinghuang@126.com</string>
 
     <string name="search_files">Search files</string>
+
+    <string name="no_apk">There is no APK files</string>
+    <string name="no_picture">There is no picture files</string>
+    <string name="no_music">There is no music files</string>
+    <string name="no_video">There is no video files</string>
+    <string name="no_document">There is no document files</string>
+    <string name="no_qq">There is QQ document files</string>
+    <string name="no_wechat">There is no wechat files</string>
+    <string name="no_archive">There is no Archive files</string>
 </resources>

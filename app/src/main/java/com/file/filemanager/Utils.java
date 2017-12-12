@@ -1,9 +1,14 @@
 package com.file.filemanager;
 
+import android.content.ContentResolver;
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 
 /**
  * Created by huang on 2017/7/21.
@@ -117,5 +122,31 @@ public class Utils {
         }
 
         return description;
+    }
+
+    public static ArrayList<FileInfo> getSpecificTypeOfFile(Context context, String[] extensions) {
+        ArrayList<FileInfo> list = new ArrayList<FileInfo>();
+        Uri fileUri = MediaStore.Files.getContentUri("external");
+        String[] projection = new String[]{MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.TITLE};
+        String selection = "";
+        for(int i = 0; i < extensions.length; i++){
+            if(0 != i) {
+                selection = selection + " OR ";
+            }
+            selection = selection + MediaStore.Files.FileColumns.DATA + " LIKE '%" + extensions[i] + "'";
+        }
+
+        ContentResolver resolver = context.getContentResolver();
+        Cursor cursor = resolver.query(fileUri, projection, selection, null, null);
+        if(cursor == null)
+            return null;
+        while(cursor.moveToNext()) {
+            String path = cursor.getString(0);
+            FileInfo fileInfo = new FileInfo(context, path);
+            list.add(fileInfo);
+        }
+        cursor.close();
+
+        return list;
     }
 }

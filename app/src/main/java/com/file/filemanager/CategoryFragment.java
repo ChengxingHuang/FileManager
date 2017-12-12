@@ -3,12 +3,15 @@ package com.file.filemanager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -33,20 +36,38 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     public static final String KEY_COUNT = "count";
 
     private int[] mCategoryIcon = {R.drawable.category_icon_image, R.drawable.category_icon_music, R.drawable.category_icon_video,
-                    R.drawable.category_icon_document, R.drawable.category_icon_qq, R.drawable.category_icon_wechat,
-                    R.drawable.category_icon_apk, R.drawable.category_icon_favorite, R.drawable.category_icon_encryption};
+                    R.drawable.category_icon_document, R.drawable.category_icon_apk, R.drawable.category_icon_zip,
+                    R.drawable.category_icon_favorite, R.drawable.category_icon_qq, R.drawable.category_icon_wechat,};
 
     private int[] mCategoryTitle = {R.string.category_image, R.string.category_music, R.string.category_video,
-                    R.string.category_document, R.string.category_qq, R.string.category_wechat,
-                    R.string.category_apk, R.string.category_favorite, R.string.category_encryption};
+                    R.string.category_document, R.string.category_apk, R.string.category_archive,
+                     R.string.category_favorite, R.string.category_qq, R.string.category_wechat};
 
     private int[] mChartParties = {R.string.category_image, R.string.category_music, R.string.category_video,
                     R.string.category_document, R.string.category_apk, R.string.category_others};
 
-    private List<Map<String, Object>> mDataList = new ArrayList<Map<String, Object>>();
+    private String[] mPicture = {".jpg", ".png", ".jpeg", ".gif", ".bmp"};
+    private String[] mMusic = {".mp3", ".wma", ".amr", ".aac", ".flac", ".ape", ".midi"};
+    private String[] mVideo = {".mpeg", ".avi", ".mov", ".wmv", ".3gp", ".mkv", ".mp4", ".rmvb"};
+    private String[] mDocument = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".pdf"};
+    private String[] mApk = {".apk"};
+    private String[] mArchive = {".zip", ".rar", ".tar", ".gz", ".7z"};
+
+    private List<Map<String, Object>> mCategoryList = new ArrayList<Map<String, Object>>();
 
     private GridView mCategoryGrid;
     private PieChart mChart;
+    private TextView mNoFileText;
+    private RecyclerView mCategoryRecyclerView;
+    private FileListAdapter mFileListAdapter;
+
+    private ArrayList<FileInfo> mListTmp;
+    private ArrayList<FileInfo> mPictureList;
+    private ArrayList<FileInfo> mMusicList;
+    private ArrayList<FileInfo> mVideoList;
+    private ArrayList<FileInfo> mDocumentList;
+    private ArrayList<FileInfo> mApkList;
+    private ArrayList<FileInfo> mArchiveList;
 
     public CategoryFragment() {
     }
@@ -59,25 +80,30 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         View v = inflater.inflate(R.layout.fragment_category, container, false);
 
         mCategoryGrid = (GridView)v.findViewById(R.id.category_grid);
-        mCategoryGrid.setAdapter(new SimpleAdapter(getActivity(), mDataList, R.layout.item_category,
+        mCategoryGrid.setAdapter(new SimpleAdapter(getActivity(), mCategoryList, R.layout.item_category,
                 new String[]{KEY_ICON, KEY_TITLE, KEY_COUNT},
                 new int[]{R.id.category_image, R.id.category_title, R.id.category_count}));
         mCategoryGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // TODO: 2017/7/19 根据分类信息显示不同的信息，应该不需要这么case的
                 switch (position){
                     case 0:
+                        showCategoryList(R.string.no_picture);
                         break;
                     case 1:
+                        showCategoryList(R.string.no_music);
                         break;
                     case 2:
+                        showCategoryList(R.string.no_video);
                         break;
                     case 3:
+                        showCategoryList(R.string.no_document);
                         break;
                     case 4:
+                        showCategoryList(R.string.no_apk);
                         break;
                     case 5:
+                        showCategoryList(R.string.no_archive);
                         break;
                     case 6:
                         break;
@@ -92,6 +118,67 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         });
 
         mChart = (PieChart)v.findViewById(R.id.chart);
+        initChart();
+
+        mNoFileText = (TextView)v.findViewById(R.id.no_files_text);
+
+        mCategoryRecyclerView = (RecyclerView)v.findViewById(R.id.category_list);
+        mCategoryRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mCategoryRecyclerView.setHasFixedSize(true);
+        mCategoryRecyclerView.addItemDecoration(new ListItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
+
+        return v;
+    }
+
+    private void showCategoryList(int emptyText){
+        if(R.string.no_picture == emptyText){
+            mListTmp = mPictureList;
+        }else if(R.string.no_music == emptyText){
+            mListTmp = mMusicList;
+        }else if(R.string.no_video == emptyText){
+            mListTmp = mVideoList;
+        }else if(R.string.no_document == emptyText){
+            mListTmp = mDocumentList;
+        }else if(R.string.no_apk == emptyText){
+            mListTmp = mApkList;
+        }else if(R.string.no_archive == emptyText){
+            mListTmp = mArchiveList;
+        }
+
+        hideGridAndChart();
+        if(null == mListTmp || 0 == mListTmp.size()){
+            mNoFileText.setVisibility(View.VISIBLE);
+            mNoFileText.setText(emptyText);
+        }else{
+            mCategoryRecyclerView.setVisibility(View.VISIBLE);
+        }
+
+        mFileListAdapter = new FileListAdapter(getActivity(), mListTmp, null);
+        mCategoryRecyclerView.setAdapter(mFileListAdapter);
+    }
+
+    private void hideGridAndChart(){
+        mCategoryGrid.setVisibility(View.GONE);
+        mChart.setVisibility(View.GONE);
+    }
+
+    private void showGridAndChart(){
+        mCategoryGrid.setVisibility(View.VISIBLE);
+        mChart.setVisibility(View.VISIBLE);
+    }
+
+    public boolean onBackPressed(){
+        if(null != mListTmp){
+            showGridAndChart();
+            mNoFileText.setVisibility(View.GONE);
+            mCategoryRecyclerView.setVisibility(View.GONE);
+            mListTmp = null;
+            return true;
+        }
+        return false;
+    }
+
+    private void initChart(){
         mChart.setUsePercentValues(true);
         mChart.setExtraOffsets(5, 10, 5, 5);
 
@@ -118,17 +205,12 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         setData(5, 100);
 
         mChart.animateY(1400, Easing.EasingOption.EaseInOutQuad);
-
-        return v;
     }
 
     private void setData(int count, float range) {
         float mult = range;
         ArrayList<Entry> yValues1 = new ArrayList<Entry>();
 
-        // IMPORTANT: In a PieChart, no values (Entry) should have the same
-        // xIndex (even if from different DataSets), since no values can be
-        // drawn above each other.
         for (int i = 0; i < count + 1; i++) {
             yValues1.add(new Entry((float) (Math.random() * mult) + mult / 5, i));
         }
@@ -141,8 +223,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         PieDataSet dataSet = new PieDataSet(yValues1, "");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
-
-        // add a lot of colors
 
         ArrayList<Integer> colors = new ArrayList<Integer>();
 
@@ -183,15 +263,35 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     private void initData(){
-        // TODO: 2017/7/18 获取分类的total个数
-        int count = 0;
+        mPictureList = Utils.getSpecificTypeOfFile(getActivity(), mPicture);
+        mMusicList = Utils.getSpecificTypeOfFile(getActivity(), mMusic);
+        mVideoList = Utils.getSpecificTypeOfFile(getActivity(), mVideo);
+        mDocumentList = Utils.getSpecificTypeOfFile(getActivity(), mDocument);
+        mApkList = Utils.getSpecificTypeOfFile(getActivity(), mApk);
+        mArchiveList = Utils.getSpecificTypeOfFile(getActivity(), mArchive);
+
         for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
+            int count = 0;
             Map<String, Object> map = new HashMap<>();
             map.put(KEY_ICON, mCategoryIcon[i]);
             map.put(KEY_TITLE, getActivity().getResources().getString(mCategoryTitle[i]));
+
+            if(R.string.category_image == mCategoryTitle[i]){
+                count = mPictureList.size();
+            }else if(R.string.category_music == mCategoryTitle[i]){
+                count = mMusicList.size();
+            }else if(R.string.category_video == mCategoryTitle[i]){
+                count = mVideoList.size();
+            }else if(R.string.category_document == mCategoryTitle[i]){
+                count = mDocumentList.size();
+            }else if(R.string.category_apk == mCategoryTitle[i]){
+                count = mApkList.size();
+            }else if(R.string.category_archive == mCategoryTitle[i]){
+                count = mArchiveList.size();
+            }
             map.put(KEY_COUNT, count);
 
-            mDataList.add(map);
+            mCategoryList.add(map);
         }
     }
 

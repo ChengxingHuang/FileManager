@@ -212,7 +212,7 @@ public class ListFragment extends Fragment {
         mRecyclerView.setAdapter(mStorageListAdapter);
     }
 
-    public boolean backToPrePath(){
+    public boolean onBackPressed(){
         if(null != mCurPath && mCurPath.contains("/")) {
             mCurPath = mCurPath.substring(0, mCurPath.lastIndexOf("/"));
 
