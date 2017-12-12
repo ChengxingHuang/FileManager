@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawer(GravityCompat.START);
             return;
-        } else if(mAdapter.updateListFragment()){
+        } else if(mAdapter.onBackPressed()){
             return;
         }
 
