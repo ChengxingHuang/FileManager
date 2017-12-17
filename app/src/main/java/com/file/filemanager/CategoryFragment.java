@@ -24,6 +24,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
                     R.string.category_document, R.string.category_apk, R.string.category_others};
 
     private String[] mPicture = {".jpg", ".png", ".jpeg", ".gif", ".bmp"};
-    private String[] mMusic = {".mp3", ".wma", ".amr", ".aac", ".flac", ".ape", ".midi"};
+    private String[] mMusic = {".mp3", ".wma", ".amr", ".aac", ".flac", ".ape", ".midi", ".ogg"};
     private String[] mVideo = {".mpeg", ".avi", ".mov", ".wmv", ".3gp", ".mkv", ".mp4", ".rmvb"};
     private String[] mDocument = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".pdf"};
     private String[] mApk = {".apk"};
@@ -75,8 +76,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        initData();
-
         View v = inflater.inflate(R.layout.fragment_category, container, false);
 
         mCategoryGrid = (GridView)v.findViewById(R.id.category_grid);
@@ -130,6 +129,13 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         return v;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        initData();
+    }
+
     private void showCategoryList(int emptyText){
         if(R.string.no_picture == emptyText){
             mListTmp = mPictureList;
@@ -151,6 +157,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
             mNoFileText.setText(emptyText);
         }else{
             mCategoryRecyclerView.setVisibility(View.VISIBLE);
+            Collections.sort(mListTmp, new FileInfo.NameComparator(getActivity()));
         }
 
         mFileListAdapter = new FileListAdapter(getActivity(), mListTmp, null);
@@ -176,6 +183,13 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
             return true;
         }
         return false;
+    }
+
+    public void updateCurrentList(){
+        if(null != mListTmp && mListTmp.size() > 0){
+            Collections.sort(mListTmp, new FileInfo.NameComparator(getActivity()));
+            mFileListAdapter.notifyDataSetChanged();
+        }
     }
 
     private void initChart(){
@@ -263,6 +277,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     private void initData(){
+        // TODO: 2017/12/17 需要用线程去处理
         mPictureList = Utils.getSpecificTypeOfFile(getActivity(), mPicture);
         mMusicList = Utils.getSpecificTypeOfFile(getActivity(), mMusic);
         mVideoList = Utils.getSpecificTypeOfFile(getActivity(), mVideo);

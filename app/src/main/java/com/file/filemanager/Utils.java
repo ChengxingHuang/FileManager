@@ -124,6 +124,7 @@ public class Utils {
         return description;
     }
 
+    // TODO: 2017/12/17 MediaStore好像不会自动更新 
     public static ArrayList<FileInfo> getSpecificTypeOfFile(Context context, String[] extensions) {
         ArrayList<FileInfo> list = new ArrayList<FileInfo>();
         Uri fileUri = MediaStore.Files.getContentUri("external");
