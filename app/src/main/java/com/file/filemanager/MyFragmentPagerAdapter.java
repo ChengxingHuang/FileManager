@@ -62,8 +62,10 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     }
 
     public void updateCurrentList(){
-        if(null != mListFragment) {
+        if(mCurrentFragment == mListFragment){
             mListFragment.updateCurrentList();
+        }else if(mCurrentFragment == mCategoryFragment){
+            mCategoryFragment.updateCurrentList();
         }
     }
 }
