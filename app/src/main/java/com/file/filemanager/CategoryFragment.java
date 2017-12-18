@@ -23,6 +23,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +36,8 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     public static final String KEY_ICON = "icon";
     public static final String KEY_TITLE = "title";
     public static final String KEY_COUNT = "count";
+    public static final String PATH_WECHAT = "tencent/MicroMsg";
+    public static final String PATH_QQ = "tencent/QQfile_recv";
 
     private int[] mCategoryIcon = {R.drawable.category_icon_image, R.drawable.category_icon_music, R.drawable.category_icon_video,
                     R.drawable.category_icon_document, R.drawable.category_icon_apk, R.drawable.category_icon_zip,
@@ -69,6 +72,8 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private ArrayList<FileInfo> mDocumentList;
     private ArrayList<FileInfo> mApkList;
     private ArrayList<FileInfo> mArchiveList;
+    private ArrayList<FileInfo> mQQList;
+    private ArrayList<FileInfo> mWechatList;
 
     public CategoryFragment() {
     }
@@ -107,8 +112,10 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
                     case 6:
                         break;
                     case 7:
+                        showCategoryList(R.string.no_qq);
                         break;
                     case 8:
+                        showCategoryList(R.string.no_wechat);
                         break;
                     default:
                         break;
@@ -149,6 +156,10 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
             mListTmp = mApkList;
         }else if(R.string.no_archive == emptyText){
             mListTmp = mArchiveList;
+        }else if(R.string.no_wechat == emptyText){
+            mListTmp = mWechatList;
+        }else if(R.string.no_qq == emptyText){
+            mListTmp = mQQList;
         }
 
         hideGridAndChart();
@@ -162,6 +173,32 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
 
         mFileListAdapter = new FileListAdapter(getActivity(), mListTmp, null);
         mCategoryRecyclerView.setAdapter(mFileListAdapter);
+    }
+
+    private void getTencentFiles(String path, boolean isWeChat){
+        if(null != path){
+            File[] fileArray = new File(path).listFiles();
+            if(null != fileArray) {
+                for (int i = 0; i < fileArray.length; i++) {
+                    if (fileArray[i].isDirectory()) {
+                        getTencentFiles(fileArray[i].toString(), isWeChat);
+                    } else {
+                        FileInfo info = new FileInfo(getActivity(), fileArray[i].toString());
+                        if(isWeChat) {
+                            if(!PreferenceUtils.getShowHideFileValue(getActivity())
+                                && info.isHideFileType())
+                                continue;
+                            mWechatList.add(info);
+                        }else{
+                            if(!PreferenceUtils.getShowHideFileValue(getActivity())
+                                    && info.isHideFileType())
+                                continue;
+                            mQQList.add(info);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void hideGridAndChart(){
@@ -216,12 +253,12 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         // add a selection listener
         mChart.setOnChartValueSelectedListener(this);
 
-        setData(5, 100);
+        setChartData(5, 100);
 
         mChart.animateY(1400, Easing.EasingOption.EaseInOutQuad);
     }
 
-    private void setData(int count, float range) {
+    private void setChartData(int count, float range) {
         float mult = range;
         ArrayList<Entry> yValues1 = new ArrayList<Entry>();
 
@@ -277,6 +314,15 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     private void initData(){
+        String tencentRootPath = null;
+        MountStorageManager storageManager = MountStorageManager.getInstance();
+        ArrayList<MountStorageManager.MountStorage> mountStorageList = storageManager.getMountStorageList();
+        if(1 == mountStorageList.size()){
+            tencentRootPath = mountStorageList.get(0).mPath;
+        }else{
+            // TODO: 2017/12/17 有SD卡的情况
+        }
+
         // TODO: 2017/12/17 需要用线程去处理
         mPictureList = Utils.getSpecificTypeOfFile(getActivity(), mPicture);
         mMusicList = Utils.getSpecificTypeOfFile(getActivity(), mMusic);
@@ -284,6 +330,10 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         mDocumentList = Utils.getSpecificTypeOfFile(getActivity(), mDocument);
         mApkList = Utils.getSpecificTypeOfFile(getActivity(), mApk);
         mArchiveList = Utils.getSpecificTypeOfFile(getActivity(), mArchive);
+        mWechatList = new ArrayList<FileInfo>();
+        mQQList = new ArrayList<FileInfo>();
+        getTencentFiles(tencentRootPath + "/" + PATH_QQ, false);
+        getTencentFiles(tencentRootPath + "/" + PATH_WECHAT, true);
 
         for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
             int count = 0;
@@ -303,6 +353,10 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
                 count = mApkList.size();
             }else if(R.string.category_archive == mCategoryTitle[i]){
                 count = mArchiveList.size();
+            }else if(R.string.category_qq == mCategoryTitle[i]){
+                count = mQQList.size();
+            }else if(R.string.category_wechat == mCategoryTitle[i]){
+                count = mWechatList.size();
             }
             map.put(KEY_COUNT, count);
 
