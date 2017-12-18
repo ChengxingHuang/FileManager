@@ -77,6 +77,9 @@ public class ListFragment extends Fragment {
         mLastPositionList.clear();
 
         MountStorageManager storageManager = MountStorageManager.getInstance();
+        if(null != mMountStorageList){
+            mMountStorageList.clear();
+        }
         mMountStorageList = storageManager.getMountStorageList();
         Log.d(TAG, "Storage Count = " + mMountStorageList.size());
 

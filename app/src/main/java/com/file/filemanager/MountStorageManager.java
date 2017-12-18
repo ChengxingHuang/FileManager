@@ -39,6 +39,7 @@ public class MountStorageManager {
 
     public void init(Context context){
         StorageManager storageManager = (StorageManager)context.getSystemService(Context.STORAGE_SERVICE);
+        mMountStorageList.clear();
 
         try {
             Method getVolumePaths = storageManager.getClass().getMethod("getVolumeList");
