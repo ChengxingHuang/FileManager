@@ -63,7 +63,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         holder.mOptionMenuImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showPopupMenu(holder.mOptionMenuImage);
+                showPopupMenu(holder.mOptionMenuImage, fileInfo);
             }
         });
 
@@ -121,7 +121,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         });
     }
 
-    private void showPopupMenu(View anchor){
+    private void showPopupMenu(View anchor, FileInfo fileInfo){
         mPopupMenu = new PopupMenu(mContext, anchor);
         mPopupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, mPopupMenu.getMenu());
         mPopupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
