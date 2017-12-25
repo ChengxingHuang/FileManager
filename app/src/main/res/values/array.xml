@@ -21,4 +21,16 @@
         <item>@string/wechat_donate</item>
         <item>@string/alipay_donate</item>
     </string-array>
+
+    <string-array name="category">
+        <item>@string/no_picture</item>
+        <item>@string/no_music</item>
+        <item>@string/no_video</item>
+        <item>@string/no_document</item>
+        <item>@string/no_apk</item>
+        <item>@string/no_archive</item>
+        <item>@string/no_favorite</item>
+        <item>@string/no_qq</item>
+        <item>@string/no_wechat</item>
+    </string-array>
 </resources>

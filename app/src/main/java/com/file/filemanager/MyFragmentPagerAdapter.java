@@ -87,9 +87,9 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         return null;
     }
 
-    public ArrayList<FileInfo> getCurList() {
+    public ArrayList<FileInfo> getCurCategoryList() {
         if (mCurrentFragment == mCategoryFragment) {
-            return mCategoryFragment.getCurList();
+            return mCategoryFragment.getCurCategoryList();
         }
 
         return null;

@@ -39,6 +39,16 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     public static final String PATH_WECHAT = "tencent/MicroMsg";
     public static final String PATH_QQ = "tencent/QQfile_recv";
 
+    public static final int CATEGORY_PICTURE = 0;
+    public static final int CATEGORY_MUSIC = 1;
+    public static final int CATEGORY_VIDEO = 2;
+    public static final int CATEGORY_DOCUMENT = 3;
+    public static final int CATEGORY_APK = 4;
+    public static final int CATEGORY_ZIP = 5;
+    public static final int CATEGORY_FAVORITE = 6;
+    public static final int CATEGORY_QQ = 7;
+    public static final int CATEGORY_WECHAT = 8;
+
     private int[] mCategoryIcon = {R.drawable.category_icon_image, R.drawable.category_icon_music, R.drawable.category_icon_video,
                     R.drawable.category_icon_document, R.drawable.category_icon_apk, R.drawable.category_icon_zip,
                     R.drawable.category_icon_favorite, R.drawable.category_icon_qq, R.drawable.category_icon_wechat,};
@@ -65,15 +75,11 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private RecyclerView mCategoryRecyclerView;
     private FileListAdapter mFileListAdapter;
 
-    private ArrayList<FileInfo> mListTmp;
-    private ArrayList<FileInfo> mPictureList;
-    private ArrayList<FileInfo> mMusicList;
-    private ArrayList<FileInfo> mVideoList;
-    private ArrayList<FileInfo> mDocumentList;
-    private ArrayList<FileInfo> mApkList;
-    private ArrayList<FileInfo> mArchiveList;
+    private ArrayList<FileInfo> mCurList;
     private ArrayList<FileInfo> mQQList;
     private ArrayList<FileInfo> mWechatList;
+    private int mCurCategory;
+    private ArrayList<ArrayList<FileInfo>> mCategoryListManager = new ArrayList<ArrayList<FileInfo>>();
 
     public CategoryFragment() {
     }
@@ -90,36 +96,8 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         mCategoryGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                switch (position){
-                    case 0:
-                        showCategoryList(R.string.no_picture);
-                        break;
-                    case 1:
-                        showCategoryList(R.string.no_music);
-                        break;
-                    case 2:
-                        showCategoryList(R.string.no_video);
-                        break;
-                    case 3:
-                        showCategoryList(R.string.no_document);
-                        break;
-                    case 4:
-                        showCategoryList(R.string.no_apk);
-                        break;
-                    case 5:
-                        showCategoryList(R.string.no_archive);
-                        break;
-                    case 6:
-                        break;
-                    case 7:
-                        showCategoryList(R.string.no_qq);
-                        break;
-                    case 8:
-                        showCategoryList(R.string.no_wechat);
-                        break;
-                    default:
-                        break;
-                }
+                mCurCategory = position;
+                showCategoryList();
             }
         });
 
@@ -143,51 +121,45 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         initData();
     }
 
-    public ArrayList<FileInfo> getCurList(){
-        return mListTmp;
+    public ArrayList<FileInfo> getCurCategoryList(){
+        return mCategoryListManager.get(mCurCategory);
     }
 
     public void updateSearchList(ArrayList<FileInfo> list){
-        mListTmp = list;
+        mCurList.clear();
+        for(int i = 0; i < list.size(); i++){
+            mCurList.add(list.get(i));
+        }
         mFileListAdapter.notifyDataSetChanged();
     }
 
-    private void showCategoryList(int emptyText){
-        if(R.string.no_picture == emptyText){
-            mListTmp = mPictureList;
-        }else if(R.string.no_music == emptyText){
-            mListTmp = mMusicList;
-        }else if(R.string.no_video == emptyText){
-            mListTmp = mVideoList;
-        }else if(R.string.no_document == emptyText){
-            mListTmp = mDocumentList;
-        }else if(R.string.no_apk == emptyText){
-            mListTmp = mApkList;
-        }else if(R.string.no_archive == emptyText){
-            mListTmp = mArchiveList;
-        }else if(R.string.no_wechat == emptyText){
-            mListTmp = mWechatList;
-        }else if(R.string.no_qq == emptyText){
-            mListTmp = mQQList;
+    private void showCategoryList(){
+        ArrayList<FileInfo> tmp = mCategoryListManager.get(mCurCategory);
+        if(null != tmp || tmp.size() > 0){
+            mCurList = new ArrayList<FileInfo>();
+            for(int i = 0; i < tmp.size(); i++){
+                mCurList.add(tmp.get(i));
+            }
+            mCategoryRecyclerView.setVisibility(View.VISIBLE);
+            Collections.sort(mCurList, new FileInfo.NameComparator(getActivity()));
+
+            mFileListAdapter = new FileListAdapter(getActivity(), mCurList, null);
+            mCategoryRecyclerView.setAdapter(mFileListAdapter);
+        }else{
+            String[] category = getActivity().getResources().getStringArray(R.array.category);
+            mNoFileText.setVisibility(View.VISIBLE);
+            mNoFileText.setText(category[mCurCategory]);
         }
 
         hideGridAndChart();
-        if(null == mListTmp || 0 == mListTmp.size()){
-            mNoFileText.setVisibility(View.VISIBLE);
-            mNoFileText.setText(emptyText);
-        }else{
-            mCategoryRecyclerView.setVisibility(View.VISIBLE);
-            Collections.sort(mListTmp, new FileInfo.NameComparator(getActivity()));
-        }
-
-        mFileListAdapter = new FileListAdapter(getActivity(), mListTmp, null);
-        mCategoryRecyclerView.setAdapter(mFileListAdapter);
     }
 
     private void getTencentFiles(String path, boolean isWeChat){
         if(null != path){
             File[] fileArray = new File(path).listFiles();
             if(null != fileArray) {
+                mWechatList = new ArrayList<FileInfo>();
+                mQQList = new ArrayList<FileInfo>();
                 for (int i = 0; i < fileArray.length; i++) {
                     if (fileArray[i].isDirectory()) {
                         getTencentFiles(fileArray[i].toString(), isWeChat);
@@ -221,19 +193,19 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     public boolean onBackPressed(){
-        if(null != mListTmp){
+        if(null != mCurList){
             showGridAndChart();
             mNoFileText.setVisibility(View.GONE);
             mCategoryRecyclerView.setVisibility(View.GONE);
-            mListTmp = null;
+            mCurList = null;
             return true;
         }
         return false;
     }
 
     public void updateCurrentList(){
-        if(null != mListTmp && mListTmp.size() > 0){
-            Collections.sort(mListTmp, new FileInfo.NameComparator(getActivity()));
+        if(null != mCurList && mCurList.size() > 0){
+            Collections.sort(mCurList, new FileInfo.NameComparator(getActivity()));
             mFileListAdapter.notifyDataSetChanged();
         }
     }
@@ -333,41 +305,24 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         }
 
         // TODO: 2017/12/17 需要用线程去处理
-        mPictureList = Utils.getSpecificTypeOfFile(getActivity(), mPicture);
-        mMusicList = Utils.getSpecificTypeOfFile(getActivity(), mMusic);
-        mVideoList = Utils.getSpecificTypeOfFile(getActivity(), mVideo);
-        mDocumentList = Utils.getSpecificTypeOfFile(getActivity(), mDocument);
-        mApkList = Utils.getSpecificTypeOfFile(getActivity(), mApk);
-        mArchiveList = Utils.getSpecificTypeOfFile(getActivity(), mArchive);
-        mWechatList = new ArrayList<FileInfo>();
-        mQQList = new ArrayList<FileInfo>();
         getTencentFiles(tencentRootPath + "/" + PATH_QQ, false);
         getTencentFiles(tencentRootPath + "/" + PATH_WECHAT, true);
+        mCategoryListManager.add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(getActivity(), mPicture));
+        mCategoryListManager.add(CATEGORY_MUSIC, Utils.getSpecificTypeOfFile(getActivity(), mMusic));
+        mCategoryListManager.add(CATEGORY_VIDEO, Utils.getSpecificTypeOfFile(getActivity(), mVideo));
+        mCategoryListManager.add(CATEGORY_DOCUMENT, Utils.getSpecificTypeOfFile(getActivity(), mDocument));
+        mCategoryListManager.add(CATEGORY_APK, Utils.getSpecificTypeOfFile(getActivity(), mApk));
+        mCategoryListManager.add(CATEGORY_ZIP, Utils.getSpecificTypeOfFile(getActivity(), mArchive));
+        // TODO: 2017/12/25 添加喜爱列表
+        mCategoryListManager.add(CATEGORY_FAVORITE, null);
+        mCategoryListManager.add(CATEGORY_QQ, mQQList);
+        mCategoryListManager.add(CATEGORY_WECHAT, mWechatList);
 
         for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
-            int count = 0;
             Map<String, Object> map = new HashMap<>();
             map.put(KEY_ICON, mCategoryIcon[i]);
             map.put(KEY_TITLE, getActivity().getResources().getString(mCategoryTitle[i]));
-
-            if(R.string.category_image == mCategoryTitle[i]){
-                count = mPictureList.size();
-            }else if(R.string.category_music == mCategoryTitle[i]){
-                count = mMusicList.size();
-            }else if(R.string.category_video == mCategoryTitle[i]){
-                count = mVideoList.size();
-            }else if(R.string.category_document == mCategoryTitle[i]){
-                count = mDocumentList.size();
-            }else if(R.string.category_apk == mCategoryTitle[i]){
-                count = mApkList.size();
-            }else if(R.string.category_archive == mCategoryTitle[i]){
-                count = mArchiveList.size();
-            }else if(R.string.category_qq == mCategoryTitle[i]){
-                count = mQQList.size();
-            }else if(R.string.category_wechat == mCategoryTitle[i]){
-                count = mWechatList.size();
-            }
-            map.put(KEY_COUNT, count);
+            map.put(KEY_COUNT, null == mCategoryListManager.get(i) ? 0 : mCategoryListManager.get(i).size());
 
             mCategoryList.add(map);
         }

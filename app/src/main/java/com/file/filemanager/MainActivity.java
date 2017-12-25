@@ -129,14 +129,13 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // TODO: 2017/12/3 查找 
-                Log.d("huangcx", "input text = " + newText);
+                // TODO: 2017/12/3 查找
                 if(PreferenceUtils.getSearchRootValue(MainActivity.this)){
                     // TODO: 2017/12/24 查找手机本身和SD卡 
                 }else {
                     // 按照路径查找或者按照分类查找
                     String[] params = {mAdapter.getCurPath(), newText};
-                    SearchTask task = new SearchTask(mAdapter.getCurList(), MainActivity.this);
+                    SearchTask task = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
                     task.execute(params);
                     task.setOnSearchFinish(new SearchTask.OnSearchFinish() {
                         @Override
