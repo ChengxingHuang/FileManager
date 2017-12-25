@@ -14,6 +14,8 @@ public class PreferenceUtils {
     public static final String COMMON_SETTING_SHOW_SMALL_PICTURE = "show_small_picture";
     public static final String COMMON_SETTING_DIRECTOR_SORT_MODE = "director_sort_mode";
     public static final String COMMON_SETTING_SORT_BY = "sort_by";
+    public static final String COMMON_SETTING_SEARCH_WHOLE_WORD = "search_type";
+    public static final String COMMON_SETTING_SEARCH_ROOT = "search_root";
 
     public static final boolean ORDER_TYPE_ASCEND = true;
     public static final boolean ORDER_TYPE_DESCEND = false;
@@ -82,6 +84,30 @@ public class PreferenceUtils {
         SharedPreferences sh = context.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sh.edit();
         editor.putInt(COMMON_SETTING_SORT_BY, sort);
+        editor.commit();
+    }
+
+    public static boolean getSearchWholeWordValue(Context context){
+        SharedPreferences sh = context.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
+        return sh.getBoolean(COMMON_SETTING_SEARCH_WHOLE_WORD, false);
+    }
+
+    public static void setSearchWholeWordValue(Context context, boolean wholeWord){
+        SharedPreferences sh = context.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sh.edit();
+        editor.putBoolean(COMMON_SETTING_SEARCH_WHOLE_WORD, wholeWord);
+        editor.commit();
+    }
+
+    public static boolean getSearchRootValue(Context context){
+        SharedPreferences sh = context.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
+        return sh.getBoolean(COMMON_SETTING_SEARCH_ROOT, false);
+    }
+
+    public static void setSearchRootValue(Context context, boolean searchRoot){
+        SharedPreferences sh = context.getSharedPreferences(SHARE_PREFERENCE_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sh.edit();
+        editor.putBoolean(COMMON_SETTING_SEARCH_ROOT, searchRoot);
         editor.commit();
     }
 }

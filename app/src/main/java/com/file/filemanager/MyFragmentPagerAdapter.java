@@ -7,6 +7,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
+
 
 public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
@@ -67,5 +69,29 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         }else if(mCurrentFragment == mCategoryFragment){
             mCategoryFragment.updateCurrentList();
         }
+    }
+
+    public void updateSearchList(ArrayList<FileInfo> list){
+        if(mCurrentFragment == mListFragment){
+            mListFragment.updateSearchList(list);
+        }else if(mCurrentFragment == mCategoryFragment){
+            mCategoryFragment.updateSearchList(list);
+        }
+    }
+
+    public String getCurPath(){
+        if(mCurrentFragment == mListFragment){
+            return mListFragment.getCurPath();
+        }
+
+        return null;
+    }
+
+    public ArrayList<FileInfo> getCurList() {
+        if (mCurrentFragment == mCategoryFragment) {
+            return mCategoryFragment.getCurList();
+        }
+
+        return null;
     }
 }

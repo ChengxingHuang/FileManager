@@ -237,9 +237,23 @@ public class ListFragment extends Fragment {
         }
     }
 
+    public String getCurPath(){
+        return mCurPath;
+    }
+
     public void updateCurrentList(){
         ShowListAsyncTask task = new ShowListAsyncTask();
         task.execute(mCurPath);
+    }
+
+    public void updateSearchList(ArrayList<FileInfo> list){
+        mFileList.clear();
+        // TODO: 2017/12/24 mFileList = list不可行，此时mFileList指向不同的地址，无法更新数据。用for的方式效率较低 
+        for(int i = 0; i < list.size(); i++){
+            mFileList.add(list.get(i));
+        }
+        Collections.sort(mFileList, new FileInfo.NameComparator(getActivity()));
+        mFileListAdapter.notifyDataSetChanged();
     }
 
     public void enterPath(String absolutePath, boolean needToUpdate){
