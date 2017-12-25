@@ -84,7 +84,8 @@
     <string name="no_music">There is no music files</string>
     <string name="no_video">There is no video files</string>
     <string name="no_document">There is no document files</string>
-    <string name="no_qq">There is QQ document files</string>
-    <string name="no_wechat">There is no wechat files</string>
+    <string name="no_qq">There is no QQ files</string>
+    <string name="no_wechat">There is no Wechat files</string>
     <string name="no_archive">There is no Archive files</string>
+    <string name="no_favorite">There is no favorite files</string>
 </resources>
