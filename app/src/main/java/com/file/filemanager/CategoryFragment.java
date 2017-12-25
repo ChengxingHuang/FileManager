@@ -143,6 +143,15 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         initData();
     }
 
+    public ArrayList<FileInfo> getCurList(){
+        return mListTmp;
+    }
+
+    public void updateSearchList(ArrayList<FileInfo> list){
+        mListTmp = list;
+        mFileListAdapter.notifyDataSetChanged();
+    }
+
     private void showCategoryList(int emptyText){
         if(R.string.no_picture == emptyText){
             mListTmp = mPictureList;

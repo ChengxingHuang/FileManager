@@ -29,6 +29,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
@@ -129,6 +131,20 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 // TODO: 2017/12/3 查找 
                 Log.d("huangcx", "input text = " + newText);
+                if(PreferenceUtils.getSearchRootValue(MainActivity.this)){
+                    // TODO: 2017/12/24 查找手机本身和SD卡 
+                }else {
+                    // 按照路径查找或者按照分类查找
+                    String[] params = {mAdapter.getCurPath(), newText};
+                    SearchTask task = new SearchTask(mAdapter.getCurList(), MainActivity.this);
+                    task.execute(params);
+                    task.setOnSearchFinish(new SearchTask.OnSearchFinish() {
+                        @Override
+                        public void searchFinish(ArrayList<FileInfo> list) {
+                            mAdapter.updateSearchList(list);
+                        }
+                    });
+                }
                 return true;
             }
         });
