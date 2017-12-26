@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -49,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private MenuItem mHomeMenuItem;
     private MenuItem mSortMenuItem;
     private SearchView mSearchView;
+
+    private SearchTask mSearchTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,11 +136,15 @@ public class MainActivity extends AppCompatActivity {
                 if(PreferenceUtils.getSearchRootValue(MainActivity.this)){
                     // TODO: 2017/12/24 查找手机本身和SD卡 
                 }else {
-                    // 按照路径查找或者按照分类查找
+                    //要先暂停之前的搜索
+                    if((null != mSearchTask) && (mSearchTask.getStatus() == AsyncTask.Status.RUNNING)){
+                        mSearchTask.cancel(true);
+                    }
+                    // 按照路径或分类查找
                     String[] params = {mAdapter.getCurPath(), newText};
-                    SearchTask task = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
-                    task.execute(params);
-                    task.setOnSearchFinish(new SearchTask.OnSearchFinish() {
+                    mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
+                    mSearchTask.execute(params);
+                    mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
                         @Override
                         public void searchFinish(ArrayList<FileInfo> list) {
                             mAdapter.updateSearchList(list);
