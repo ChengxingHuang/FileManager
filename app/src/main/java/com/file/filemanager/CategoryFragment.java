@@ -136,7 +136,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
 
     private void showCategoryList(){
         ArrayList<FileInfo> tmp = mCategoryListManager.get(mCurCategory);
-        if(null != tmp || tmp.size() > 0){
+        if(null != tmp && tmp.size() > 0){
             mCurList = new ArrayList<FileInfo>();
             for(int i = 0; i < tmp.size(); i++){
                 mCurList.add(tmp.get(i));
@@ -194,7 +194,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     public boolean onBackPressed(){
-        if(null != mCurList){
+        if(null != mCurList || mNoFileText.getVisibility() == View.VISIBLE){
             showGridAndChart();
             mNoFileText.setVisibility(View.GONE);
             mCategoryRecyclerView.setVisibility(View.GONE);
