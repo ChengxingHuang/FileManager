@@ -126,12 +126,13 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     public void updateSearchList(ArrayList<FileInfo> list){
-        if(null != mCurList)
+        if(null != mCurList) {
             mCurList.clear();
-        for(int i = 0; i < list.size(); i++){
-            mCurList.add(list.get(i));
+            for (int i = 0; i < list.size(); i++) {
+                mCurList.add(list.get(i));
+            }
+            mFileListAdapter.notifyDataSetChanged();
         }
-        mFileListAdapter.notifyDataSetChanged();
     }
 
     private void showCategoryList(){
