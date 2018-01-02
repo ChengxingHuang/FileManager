@@ -193,6 +193,8 @@ public class ListFragment extends Fragment {
         mRecyclerView.setAdapter(mFileListAdapter);
         mRootPath = rootPath;
 
+        enterPath(rootPath, false);
+
         ShowListAsyncTask task = new ShowListAsyncTask();
         task.execute(mRootPath);
     }
@@ -258,6 +260,7 @@ public class ListFragment extends Fragment {
 
     public void enterPath(String absolutePath, boolean needToUpdate){
         mCurPath = absolutePath;
+        mIsStorageList = false;
         if(needToUpdate) {
             updateCurrentList();
         }

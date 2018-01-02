@@ -88,4 +88,7 @@
     <string name="no_wechat">There is no Wechat files</string>
     <string name="no_archive">There is no Archive files</string>
     <string name="no_favorite">There is no favorite files</string>
+
+    <string name="available">Available:</string>
+    <string name="total">Total:</string>
 </resources>

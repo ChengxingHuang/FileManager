@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 // TODO: 2017/12/3 查找
                 if(PreferenceUtils.getSearchRootValue(MainActivity.this)){
-                    // TODO: 2017/12/24 查找手机本身和SD卡 
+                    // TODO: 2017/12/24 查找手机本身和SD卡
                 }else {
                     //要先暂停之前的搜索
                     if((null != mSearchTask) && (mSearchTask.getStatus() == AsyncTask.Status.RUNNING)){
