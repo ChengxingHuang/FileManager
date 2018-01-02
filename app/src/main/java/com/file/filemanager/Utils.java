@@ -4,7 +4,9 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.StatFs;
 import android.provider.MediaStore;
+import android.text.format.Formatter;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -19,14 +21,22 @@ public class Utils {
      * 获取获取指定存储（手机/SD卡）的可用空间
      */
     public static String getStorageAvailableSpace(Context context, String path){
-        return "Available:6GB";
+        StatFs stat = new StatFs(path);
+        long blockSize = stat.getBlockSizeLong();
+        long availableBlocks = stat.getAvailableBlocksLong();
+        return context.getResources().getString(R.string.available)
+                + Formatter.formatFileSize(context, blockSize * availableBlocks);
     }
 
     /**
      * 获取获取指定存储（手机/SD卡）的总空间
      */
     public static String getStorageTotalSpace(Context context, String path){
-        return "Total:6GB";
+        StatFs stat = new StatFs(path);
+        long blockSize = stat.getBlockSizeLong();
+        long totalBlocks = stat.getBlockCountLong();
+        return context.getResources().getString(R.string.total)
+                + Formatter.formatFileSize(context, blockSize * totalBlocks);
     }
 
     public static int getReflectInt(Object object, String id){
