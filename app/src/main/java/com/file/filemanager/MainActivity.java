@@ -132,25 +132,21 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                // TODO: 2017/12/3 查找
-                if(PreferenceUtils.getSearchRootValue(MainActivity.this)){
-                    // TODO: 2017/12/24 查找手机本身和SD卡
-                }else {
-                    //要先暂停之前的搜索
-                    if((null != mSearchTask) && (mSearchTask.getStatus() == AsyncTask.Status.RUNNING)){
-                        mSearchTask.cancel(true);
-                    }
-                    // 按照路径或分类查找
-                    String[] params = {mAdapter.getCurPath(), newText};
-                    mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
-                    mSearchTask.execute(params);
-                    mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
-                        @Override
-                        public void searchFinish(ArrayList<FileInfo> list) {
-                            mAdapter.updateSearchList(list);
-                        }
-                    });
+                //要先暂停之前的搜索
+                if((null != mSearchTask) && (mSearchTask.getStatus() == AsyncTask.Status.RUNNING)){
+                    mSearchTask.cancel(true);
                 }
+
+                // 按照路径或分类查找
+                String[] params = {mAdapter.getCurPath(), newText};
+                mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
+                mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
+                    @Override
+                    public void searchFinish(ArrayList<FileInfo> list) {
+                        mAdapter.updateSearchList(list);
+                    }
+                });
+                mSearchTask.execute(params);
                 return true;
             }
         });
@@ -160,6 +156,14 @@ public class MainActivity extends AppCompatActivity {
                 if(!hasFocus) {
                     mSearchView.onActionViewCollapsed();
                 }
+            }
+        });
+        mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                if(null == mAdapter.getCurPath() && null == mAdapter.getCurCategoryList())
+                    mAdapter.onBackPressed();
+                return false;
             }
         });
 
