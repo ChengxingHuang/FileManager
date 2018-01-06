@@ -75,10 +75,10 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private RecyclerView mCategoryRecyclerView;
     private FileListAdapter mFileListAdapter;
 
-    private ArrayList<FileInfo> mCurList;
+    private ArrayList<FileInfo> mCurList = new ArrayList<FileInfo>();
     private ArrayList<FileInfo> mQQList;
     private ArrayList<FileInfo> mWechatList;
-    private int mCurCategory;
+    private int mCurCategoryIndex = -1;
     private ArrayList<ArrayList<FileInfo>> mCategoryListManager = new ArrayList<ArrayList<FileInfo>>();
 
     public CategoryFragment() {
@@ -96,7 +96,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         mCategoryGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mCurCategory = position;
+                mCurCategoryIndex = position;
                 showCategoryList();
             }
         });
@@ -122,23 +122,34 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     public ArrayList<FileInfo> getCurCategoryList(){
-        return mCategoryListManager.get(mCurCategory);
+        if(-1 == mCurCategoryIndex){
+            return null;
+        }
+        return mCategoryListManager.get(mCurCategoryIndex);
     }
 
     public void updateSearchList(ArrayList<FileInfo> list){
-        if(null != mCurList) {
-            mCurList.clear();
-            for (int i = 0; i < list.size(); i++) {
-                mCurList.add(list.get(i));
-            }
+        hideGridAndChart();
+
+        mCurList.clear();
+        for (int i = 0; i < list.size(); i++) {
+            mCurList.add(list.get(i));
+        }
+
+        mCategoryRecyclerView.setVisibility(View.VISIBLE);
+        Collections.sort(mCurList, new FileInfo.NameComparator(getActivity()));
+        if(null == mFileListAdapter){
+            mFileListAdapter = new FileListAdapter(getActivity(), mCurList, null);
+            mCategoryRecyclerView.setAdapter(mFileListAdapter);
+        }else {
             mFileListAdapter.notifyDataSetChanged();
         }
     }
 
     private void showCategoryList(){
-        ArrayList<FileInfo> tmp = mCategoryListManager.get(mCurCategory);
+        ArrayList<FileInfo> tmp = mCategoryListManager.get(mCurCategoryIndex);
         if(null != tmp && tmp.size() > 0){
-            mCurList = new ArrayList<FileInfo>();
+            mCurList.clear();
             for(int i = 0; i < tmp.size(); i++){
                 mCurList.add(tmp.get(i));
             }
@@ -150,7 +161,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         }else{
             String[] category = getActivity().getResources().getStringArray(R.array.category);
             mNoFileText.setVisibility(View.VISIBLE);
-            mNoFileText.setText(category[mCurCategory]);
+            mNoFileText.setText(category[mCurCategoryIndex]);
         }
 
         hideGridAndChart();
@@ -195,11 +206,12 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     public boolean onBackPressed(){
-        if(null != mCurList || mNoFileText.getVisibility() == View.VISIBLE){
+        if(mCurList.size() > 0 || mNoFileText.getVisibility() == View.VISIBLE){
             showGridAndChart();
             mNoFileText.setVisibility(View.GONE);
             mCategoryRecyclerView.setVisibility(View.GONE);
-            mCurList = null;
+            mCurList.clear();
+            mCurCategoryIndex = -1;
             return true;
         }
         return false;

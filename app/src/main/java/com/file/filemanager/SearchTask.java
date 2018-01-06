@@ -31,7 +31,15 @@ public class SearchTask extends AsyncTask<String, Void, Void> {
      */
     @Override
     protected Void doInBackground(String[] params) {
-        if(null != params[0] && null != params[1]){
+        if((null == params[0] && null == mSearchSourceList)
+                || PreferenceUtils.getSearchRootValue(mContext)){
+            ArrayList<MountStorageManager.MountStorage> storageList = MountStorageManager.getInstance().getMountStorageList();
+            for(int i = 0; i < storageList.size(); i++){
+                String rootPath = storageList.get(i).mPath;
+                Log.d(TAG, "Search root path = " + rootPath + ", keyWord = " + params[1]);
+                searchByPath(rootPath, params[1]);
+            }
+        } else if(null != params[0] && null != params[1]){
             Log.d(TAG, "Search path = " + params[0] + ", keyWord = " + params[1]);
             searchByPath(params[0], params[1]);
         }else if(null != mSearchSourceList && null != params[1]) {
@@ -91,13 +99,13 @@ public class SearchTask extends AsyncTask<String, Void, Void> {
                 realName = fullName.substring(0, pointLastIndex);
             }
             if (keyWord.equals(realName) || keyWord.equals(fullName)) {
-                FileInfo fileInfo = new FileInfo(mContext, filePath + "/" + fullName);
+                FileInfo fileInfo = new FileInfo(mContext, filePath);
                 mSearchResultList.add(fileInfo);
             }
         }else {
             //模糊匹配：名字中包含关键字即可
             if(fullName.contains(keyWord)){
-                FileInfo fileInfo = new FileInfo(mContext, filePath + "/" + fullName);
+                FileInfo fileInfo = new FileInfo(mContext, filePath);
                 mSearchResultList.add(fileInfo);
             }
         }
