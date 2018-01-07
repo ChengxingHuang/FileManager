@@ -12,7 +12,7 @@
     <string name="category_archive">Archive</string>
     <string name="category_others">Others</string>
 
-    <string name="category_storage">Category Storage</string>
+    <string name="category_storage">Category</string>
     <string name="phone_storage">Phone Storage</string>
 
     <string name="menu_setting">Setting</string>
@@ -91,4 +91,6 @@
 
     <string name="available">Available:</string>
     <string name="total">Total:</string>
+
+    <string name="is_empty">is empty.</string>
 </resources>

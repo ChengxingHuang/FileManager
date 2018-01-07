@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class ListFragment extends Fragment {
     private Context mContext;
     private RecyclerView mRecyclerView;
     private FloatingActionButton mFloatingActionButton;
+    private TextView mEmptyText;
 
     private List<LastPosition> mLastPositionList = new ArrayList<LastPosition>();
 
@@ -74,6 +76,8 @@ public class ListFragment extends Fragment {
                 Log.d("huangcx", "mFloatingActionButton click");
             }
         });
+
+        mEmptyText = (TextView) v.findViewById(R.id.empty_tips);
 
         mLastPositionList.clear();
 
@@ -225,6 +229,9 @@ public class ListFragment extends Fragment {
             else
                 mIsShowSearchList = false;
 
+            mRecyclerView.setVisibility(View.VISIBLE);
+            mEmptyText.setVisibility(View.GONE);
+
             if (mCurPath.length() >= mRootPath.length()) {
                 updateCurrentList();
                 mLastPositionList.remove(mLastPositionList.size() - 1);
@@ -290,6 +297,20 @@ public class ListFragment extends Fragment {
         if(needToUpdate) {
             updateCurrentList();
         }
+
+        LastPosition pos = new LastPosition();
+        pos.mLastPosition = -1;
+        pos.mLastTopOffset = -1;
+        mLastPositionList.add(pos);
+    }
+
+    public void enterEmptyPath(String path){
+        mRecyclerView.setVisibility(View.GONE);
+        mEmptyText.setVisibility(View.VISIBLE);
+
+        mCurPath = path;
+        mIsStorageList = false;
+        mEmptyText.setText(path + " " + mContext.getResources().getString(R.string.is_empty));
 
         LastPosition pos = new LastPosition();
         pos.mLastPosition = -1;
