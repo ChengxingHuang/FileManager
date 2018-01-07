@@ -79,6 +79,14 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         }
     }
 
+    public void backToPreList(){
+        if(mCurrentFragment == mListFragment){
+            mListFragment.backToPreList();
+        }else if(mCurrentFragment == mCategoryFragment){
+            mCategoryFragment.backToPreList();
+        }
+    }
+
     public String getCurPath(){
         if(mCurrentFragment == mListFragment){
             return mListFragment.getCurPath();

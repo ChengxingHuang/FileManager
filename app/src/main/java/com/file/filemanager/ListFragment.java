@@ -39,6 +39,7 @@ public class ListFragment extends Fragment {
     private String mCurPath;
     private String mRootPath;
     private boolean mIsStorageList = false;
+    private boolean mIsShowSearchList = false;
 
     private ArrayList<MountStorageManager.MountStorage> mMountStorageList;
 
@@ -219,7 +220,10 @@ public class ListFragment extends Fragment {
 
     public boolean onBackPressed(){
         if(null != mCurPath && mCurPath.contains("/")) {
-            mCurPath = mCurPath.substring(0, mCurPath.lastIndexOf("/"));
+            if(!mIsShowSearchList)
+                mCurPath = mCurPath.substring(0, mCurPath.lastIndexOf("/"));
+            else
+                mIsShowSearchList = false;
 
             if (mCurPath.length() >= mRootPath.length()) {
                 updateCurrentList();
@@ -255,7 +259,29 @@ public class ListFragment extends Fragment {
             mFileList.add(list.get(i));
         }
         Collections.sort(mFileList, new FileInfo.NameComparator(getActivity()));
-        mFileListAdapter.notifyDataSetChanged();
+        if(null != mFileListAdapter) {
+            mFileListAdapter.notifyDataSetChanged();
+        }else{
+            mFileListAdapter = new FileListAdapter(mContext, mFileList, this);
+            mRecyclerView.setAdapter(mFileListAdapter);
+        }
+
+        LastPosition pos = new LastPosition();
+        pos.mLastPosition = -1;
+        pos.mLastTopOffset = -1;
+        mLastPositionList.add(pos);
+
+        mIsShowSearchList = true;
+    }
+
+    public void backToPreList(){
+        if(null == mCurPath){
+            mIsStorageList = true;
+            mStorageList.clear();
+            showStorageList();
+        }else{
+            updateCurrentList();
+        }
     }
 
     public void enterPath(String absolutePath, boolean needToUpdate){
