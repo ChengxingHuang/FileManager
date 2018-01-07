@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         mSearchView = (SearchView) MenuItemCompat.getActionView(mSearchMenuItem);
         mSearchView.setQueryHint(getResources().getString(R.string.search_files));
+        mSearchView.onActionViewCollapsed();
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -137,35 +138,42 @@ public class MainActivity extends AppCompatActivity {
                     mSearchTask.cancel(true);
                 }
 
-                // 按照路径或分类查找
-                String[] params = {mAdapter.getCurPath(), newText};
-                mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
-                mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
-                    @Override
-                    public void searchFinish(ArrayList<FileInfo> list) {
-                        mAdapter.updateSearchList(list);
-                    }
-                });
-                mSearchTask.execute(params);
+                if(!"".equals(newText)){
+                    // 按照路径或分类查找
+                    String[] params = {mAdapter.getCurPath(), newText};
+                    mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
+                    mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
+                        @Override
+                        public void searchFinish(ArrayList<FileInfo> list) {
+                            mAdapter.updateSearchList(list);
+                        }
+                    });
+                    mSearchTask.execute(params);
+                }else{
+                    //搜索字串为空，返回搜索前的list
+                    mAdapter.backToPreList();
+                }
                 return true;
             }
         });
-        mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus) {
-                    mSearchView.onActionViewCollapsed();
-                }
-            }
-        });
-        mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                if(null == mAdapter.getCurPath() && null == mAdapter.getCurCategoryList())
-                    mAdapter.onBackPressed();
-                return false;
-            }
-        });
+        //按了返回键，只是先让软键盘消失
+//        mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+//            @Override
+//            public void onFocusChange(View v, boolean hasFocus) {
+//                if(!hasFocus) {
+//                    mSearchView.onActionViewCollapsed();
+//                }
+//            }
+//        });
+        //关闭SearchView监听
+//        mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
+//            @Override
+//            public boolean onClose() {
+//                if(null == mAdapter.getCurPath() && null == mAdapter.getCurCategoryList())
+//                    mAdapter.onBackPressed();
+//                return false;
+//            }
+//        });
 
         mNormalMenu.findItem(R.id.sort_by).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
@@ -238,6 +246,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        boolean needBack = true;
+
+        //返回键关闭SearchView
+        if (!mSearchView.isIconified()) {
+            mSearchView.onActionViewCollapsed();
+            needBack = false;
+        }
+
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
             mDrawerLayout.closeDrawer(GravityCompat.START);
             return;
@@ -245,7 +261,9 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        super.onBackPressed();
+        if(needBack) {
+            super.onBackPressed();
+        }
     }
 
     public void startActionMode(){

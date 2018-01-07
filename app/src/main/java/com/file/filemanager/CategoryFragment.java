@@ -80,6 +80,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private ArrayList<FileInfo> mWechatList;
     private int mCurCategoryIndex = -1;
     private ArrayList<ArrayList<FileInfo>> mCategoryListManager = new ArrayList<ArrayList<FileInfo>>();
+    private boolean mIsShowSearchList = false;
 
     public CategoryFragment() {
     }
@@ -144,6 +145,15 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         }else {
             mFileListAdapter.notifyDataSetChanged();
         }
+        mIsShowSearchList = true;
+    }
+
+    public void backToPreList() {
+        if (-1 == mCurCategoryIndex) {
+            showGridAndChart();
+        } else{
+            showCategoryList();
+        }
     }
 
     private void showCategoryList(){
@@ -206,6 +216,11 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     public boolean onBackPressed(){
+        if(-1 != mCurCategoryIndex && mIsShowSearchList){
+            mIsShowSearchList = false;
+            showCategoryList();
+            return true;
+        }
         if(mCurList.size() > 0 || mNoFileText.getVisibility() == View.VISIBLE){
             showGridAndChart();
             mNoFileText.setVisibility(View.GONE);
