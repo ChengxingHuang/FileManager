@@ -1,17 +1,25 @@
 package com.file.filemanager;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -73,7 +81,26 @@ public class ListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // TODO: 2017/11/2 弹出新建文件夹窗口
-                Log.d("huangcx", "mFloatingActionButton click");
+                LayoutInflater inflater = LayoutInflater.from(getActivity());
+                View view = inflater.inflate(R.layout.new_folder_dialog, null);
+                final EditText nameEdit = (EditText)view.findViewById(R.id.name);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.AlertDialogCustom));
+                builder.setTitle(R.string.create_folder);
+                builder.setView(view);
+                builder.setNegativeButton(android.R.string.cancel, null);
+                builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which){
+                        createFolder(mCurPath + File.separator + nameEdit.getEditableText().toString());
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                //以下两句用来打开AlertDialog时直接打开软键盘
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                dialog.show();
             }
         });
 
@@ -316,5 +343,19 @@ public class ListFragment extends Fragment {
         pos.mLastPosition = -1;
         pos.mLastTopOffset = -1;
         mLastPositionList.add(pos);
+    }
+
+    private void createFolder(String path){
+        if(null == path || "".equals(path)){
+            Toast.makeText(mContext, R.string.create_folder_illegal_tips, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        File file = new File(path);
+        if(file.exists() && file.isDirectory()){
+            Toast.makeText(mContext, R.string.folder_exist_tips, Toast.LENGTH_SHORT).show();
+        }else{
+            Log.d("huangcx", "ret = " + file.mkdirs());
+        }
     }
 }

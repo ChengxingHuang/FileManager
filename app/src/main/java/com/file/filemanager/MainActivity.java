@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private MyFragmentPagerAdapter mAdapter;
     public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
+    public static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0x02;
 
     private ActionMode mActionMode;
     private TextView mItemCountView;
@@ -63,13 +65,17 @@ public class MainActivity extends AppCompatActivity {
 
         FileInfo.init();
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            //申请权限
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
-        }else{
-            //
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
+            }
         }
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_main);
@@ -232,12 +238,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // callPhone();
-            } else {
-                // Permission Denied
-                Toast.makeText(MainActivity.this, "Permission Denied", Toast.LENGTH_SHORT).show();
+        if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE
+                || requestCode == PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(MainActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
             }
             return;
         }
