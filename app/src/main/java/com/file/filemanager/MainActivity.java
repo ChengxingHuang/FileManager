@@ -33,6 +33,8 @@ import android.widget.Toast;
 
 import com.file.filemanager.Task.SearchTask;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private DrawerLayout mDrawerLayout;
