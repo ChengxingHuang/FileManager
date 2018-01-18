@@ -66,6 +66,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private int mCurCategoryIndex = -1;
     private ArrayList<ArrayList<FileInfo>> mCategoryListManager = new ArrayList<ArrayList<FileInfo>>();
     private boolean mIsShowSearchList = false;
+    private boolean mHasSetAdapter = false;
 
     public CategoryFragment() {
     }
@@ -76,9 +77,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         View v = inflater.inflate(R.layout.fragment_category, container, false);
 
         mCategoryGrid = (GridView)v.findViewById(R.id.category_grid);
-        mCategoryGrid.setAdapter(new SimpleAdapter(getActivity(), mCategoryList, R.layout.item_category,
-                new String[]{KEY_ICON, KEY_TITLE, KEY_COUNT},
-                new int[]{R.id.category_image, R.id.category_title, R.id.category_count}));
         mCategoryGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -297,6 +295,15 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
                     map.put(KEY_COUNT, null == mCategoryListManager.get(i) ? 0 : mCategoryListManager.get(i).size());
 
                     mCategoryList.add(map);
+                }
+
+                // 由于多线程的问题，setAdapter需要放在这里，不然可能先setAdapter导致数据为空
+                // TODO: 2018/1/18 不确定多次setAdapter是否会有问题，暂时用flag的方式 
+                if(!mHasSetAdapter) {
+                    mHasSetAdapter = true;
+                    mCategoryGrid.setAdapter(new SimpleAdapter(getActivity(), mCategoryList, R.layout.item_category,
+                            new String[]{KEY_ICON, KEY_TITLE, KEY_COUNT},
+                            new int[]{R.id.category_image, R.id.category_title, R.id.category_count}));
                 }
             }
         });
