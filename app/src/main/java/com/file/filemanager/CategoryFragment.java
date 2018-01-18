@@ -1,6 +1,7 @@
 package com.file.filemanager;
 
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,6 +14,8 @@ import android.widget.GridView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import com.file.filemanager.Task.AssortTask;
+import com.file.filemanager.Task.SearchTask;
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.Entry;
@@ -36,18 +39,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     public static final String KEY_ICON = "icon";
     public static final String KEY_TITLE = "title";
     public static final String KEY_COUNT = "count";
-    public static final String PATH_WECHAT = "tencent/MicroMsg";
-    public static final String PATH_QQ = "tencent/QQfile_recv";
-
-    public static final int CATEGORY_PICTURE = 0;
-    public static final int CATEGORY_MUSIC = 1;
-    public static final int CATEGORY_VIDEO = 2;
-    public static final int CATEGORY_DOCUMENT = 3;
-    public static final int CATEGORY_APK = 4;
-    public static final int CATEGORY_ZIP = 5;
-    public static final int CATEGORY_FAVORITE = 6;
-    public static final int CATEGORY_QQ = 7;
-    public static final int CATEGORY_WECHAT = 8;
 
     private int[] mCategoryIcon = {R.drawable.category_icon_image, R.drawable.category_icon_music, R.drawable.category_icon_video,
                     R.drawable.category_icon_document, R.drawable.category_icon_apk, R.drawable.category_icon_zip,
@@ -60,13 +51,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private int[] mChartParties = {R.string.category_image, R.string.category_music, R.string.category_video,
                     R.string.category_document, R.string.category_apk, R.string.category_others};
 
-    private String[] mPicture = {".jpg", ".png", ".jpeg", ".gif", ".bmp"};
-    private String[] mMusic = {".mp3", ".wma", ".amr", ".aac", ".flac", ".ape", ".midi", ".ogg"};
-    private String[] mVideo = {".mpeg", ".avi", ".mov", ".wmv", ".3gp", ".mkv", ".mp4", ".rmvb"};
-    private String[] mDocument = {".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".pdf"};
-    private String[] mApk = {".apk"};
-    private String[] mArchive = {".zip", ".rar", ".tar", ".gz", ".7z"};
-
     private List<Map<String, Object>> mCategoryList = new ArrayList<Map<String, Object>>();
 
     private GridView mCategoryGrid;
@@ -76,11 +60,11 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private FileListAdapter mFileListAdapter;
 
     private ArrayList<FileInfo> mCurList = new ArrayList<FileInfo>();
-    private ArrayList<FileInfo> mQQList;
-    private ArrayList<FileInfo> mWechatList;
     private int mCurCategoryIndex = -1;
     private ArrayList<ArrayList<FileInfo>> mCategoryListManager = new ArrayList<ArrayList<FileInfo>>();
     private boolean mIsShowSearchList = false;
+
+    private AssortTask mAssortTask;
 
     public CategoryFragment() {
     }
@@ -175,34 +159,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         }
 
         hideGridAndChart();
-    }
-
-    private void getTencentFiles(String path, boolean isWeChat){
-        if(null != path){
-            File[] fileArray = new File(path).listFiles();
-            if(null != fileArray) {
-                mWechatList = new ArrayList<FileInfo>();
-                mQQList = new ArrayList<FileInfo>();
-                for (int i = 0; i < fileArray.length; i++) {
-                    if (fileArray[i].isDirectory()) {
-                        getTencentFiles(fileArray[i].toString(), isWeChat);
-                    } else {
-                        FileInfo info = new FileInfo(getActivity(), fileArray[i].toString());
-                        if(isWeChat) {
-                            if(!PreferenceUtils.getShowHideFileValue(getActivity())
-                                && info.isHideFileType())
-                                continue;
-                            mWechatList.add(info);
-                        }else{
-                            if(!PreferenceUtils.getShowHideFileValue(getActivity())
-                                    && info.isHideFileType())
-                                continue;
-                            mQQList.add(info);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private void hideGridAndChart(){
@@ -324,37 +280,25 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     private void initData(){
-        String tencentRootPath = null;
-        MountStorageManager storageManager = MountStorageManager.getInstance();
-        ArrayList<MountStorageManager.MountStorage> mountStorageList = storageManager.getMountStorageList();
-        if(1 == mountStorageList.size()){
-            tencentRootPath = mountStorageList.get(0).mPath;
-        }else{
-            // TODO: 2017/12/17 有SD卡的情况
+        if(null != mAssortTask && mAssortTask.getStatus() == AsyncTask.Status.RUNNING){
+            mAssortTask.cancel(true);
         }
 
-        // TODO: 2017/12/17 需要用线程去处理
-        getTencentFiles(tencentRootPath + "/" + PATH_QQ, false);
-        getTencentFiles(tencentRootPath + "/" + PATH_WECHAT, true);
-        mCategoryListManager.add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(getActivity(), mPicture));
-        mCategoryListManager.add(CATEGORY_MUSIC, Utils.getSpecificTypeOfFile(getActivity(), mMusic));
-        mCategoryListManager.add(CATEGORY_VIDEO, Utils.getSpecificTypeOfFile(getActivity(), mVideo));
-        mCategoryListManager.add(CATEGORY_DOCUMENT, Utils.getSpecificTypeOfFile(getActivity(), mDocument));
-        mCategoryListManager.add(CATEGORY_APK, Utils.getSpecificTypeOfFile(getActivity(), mApk));
-        mCategoryListManager.add(CATEGORY_ZIP, Utils.getSpecificTypeOfFile(getActivity(), mArchive));
-        // TODO: 2017/12/25 添加喜爱列表
-        mCategoryListManager.add(CATEGORY_FAVORITE, null);
-        mCategoryListManager.add(CATEGORY_QQ, mQQList);
-        mCategoryListManager.add(CATEGORY_WECHAT, mWechatList);
+        mAssortTask = new AssortTask(getActivity());
+        mAssortTask.setAssortFinish(new AssortTask.AssortFinish() {
+            @Override
+            public void assortDone() {
+                for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
+                    Map<String, Object> map = new HashMap<>();
+                    map.put(KEY_ICON, mCategoryIcon[i]);
+                    map.put(KEY_TITLE, getActivity().getResources().getString(mCategoryTitle[i]));
+                    map.put(KEY_COUNT, null == mCategoryListManager.get(i) ? 0 : mCategoryListManager.get(i).size());
 
-        for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
-            Map<String, Object> map = new HashMap<>();
-            map.put(KEY_ICON, mCategoryIcon[i]);
-            map.put(KEY_TITLE, getActivity().getResources().getString(mCategoryTitle[i]));
-            map.put(KEY_COUNT, null == mCategoryListManager.get(i) ? 0 : mCategoryListManager.get(i).size());
-
-            mCategoryList.add(map);
-        }
+                    mCategoryList.add(map);
+                }
+            }
+        });
+        mAssortTask.execute(mCategoryListManager);
     }
 
     @Override

@@ -1,8 +1,12 @@
-package com.file.filemanager;
+package com.file.filemanager.Task;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+
+import com.file.filemanager.FileInfo;
+import com.file.filemanager.MountStorageManager;
+import com.file.filemanager.PreferenceUtils;
 
 import java.io.File;
 import java.util.ArrayList;
