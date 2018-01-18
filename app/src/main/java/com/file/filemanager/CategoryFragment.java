@@ -39,6 +39,18 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     public static final String KEY_ICON = "icon";
     public static final String KEY_TITLE = "title";
     public static final String KEY_COUNT = "count";
+    public static final String PATH_WECHAT = "tencent/MicroMsg";
+    public static final String PATH_QQ = "tencent/QQfile_recv";
+
+    public static final int CATEGORY_PICTURE = 0;
+    public static final int CATEGORY_MUSIC = 1;
+    public static final int CATEGORY_VIDEO = 2;
+    public static final int CATEGORY_DOCUMENT = 3;
+    public static final int CATEGORY_APK = 4;
+    public static final int CATEGORY_ZIP = 5;
+    public static final int CATEGORY_FAVORITE = 6;
+    public static final int CATEGORY_QQ = 7;
+    public static final int CATEGORY_WECHAT = 8;
 
     private int[] mCategoryIcon = {R.drawable.category_icon_image, R.drawable.category_icon_music, R.drawable.category_icon_video,
                     R.drawable.category_icon_document, R.drawable.category_icon_apk, R.drawable.category_icon_zip,
@@ -60,11 +72,18 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private FileListAdapter mFileListAdapter;
 
     private ArrayList<FileInfo> mCurList = new ArrayList<FileInfo>();
+
     private int mCurCategoryIndex = -1;
     private ArrayList<ArrayList<FileInfo>> mCategoryListManager = new ArrayList<ArrayList<FileInfo>>();
     private boolean mIsShowSearchList = false;
 
     private AssortTask mAssortTask;
+
+    private ArrayList<FileInfo> mQQList;
+    private ArrayList<FileInfo> mWechatList;
+    private int mCurCategoryIndex = -1;
+    private ArrayList<ArrayList<FileInfo>> mCategoryListManager = new ArrayList<ArrayList<FileInfo>>();
+    private boolean mIsShowSearchList = false;
 
     public CategoryFragment() {
     }
@@ -159,6 +178,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
         }
 
         hideGridAndChart();
+
     }
 
     private void hideGridAndChart(){
@@ -282,7 +302,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     private void initData(){
         if(null != mAssortTask && mAssortTask.getStatus() == AsyncTask.Status.RUNNING){
             mAssortTask.cancel(true);
-        }
 
         mAssortTask = new AssortTask(getActivity());
         mAssortTask.setAssortFinish(new AssortTask.AssortFinish() {
