@@ -67,7 +67,6 @@ public class MountStorageManager {
                 }
             }
         } catch (Exception e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

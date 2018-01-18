@@ -31,7 +31,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
+import com.file.filemanager.Task.SearchTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -159,6 +159,23 @@ public class MainActivity extends AppCompatActivity {
                     //搜索字串为空，返回搜索前的list
                     mAdapter.backToPreList();
                 }
+
+                if(!"".equals(newText)){
+                    // 按照路径或分类查找
+                    String[] params = {mAdapter.getCurPath(), newText};
+                    mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
+                    mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
+                        @Override
+                        public void searchFinish(ArrayList<FileInfo> list) {
+                            mAdapter.updateSearchList(list);
+                        }
+                    });
+                    mSearchTask.execute(params);
+                }else{
+                    //搜索字串为空，返回搜索前的list
+                    mAdapter.backToPreList();
+                }
+
                 return true;
             }
         });
