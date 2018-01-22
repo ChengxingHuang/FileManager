@@ -96,6 +96,8 @@
     <string name="is_empty">is empty.</string>
     <string name="new_folder">Please input folder name</string>
     <string name="create_folder">Create folder</string>
-    <string name="folder_exist_tips">Folder is exist</string>
+    <string name="create_folder_exist_tips">Folder is exist</string>
     <string name="create_folder_illegal_tips">Please input legal string to create folder</string>
+    <string name="create_folder_unknown_error_tips">Create folder error</string>
+    <string name="create_folder_success_tips">Create folder successfully</string>
 </resources>

@@ -10,16 +10,16 @@ import android.support.v4.app.Fragment;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.file.filemanager.Task.CreateFolderTask;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,6 +51,8 @@ public class ListFragment extends Fragment {
     private boolean mIsStorageList = false;
     private boolean mIsShowSearchList = false;
 
+    private CreateFolderTask mCreateFolderTask;
+
     private ArrayList<MountStorageManager.MountStorage> mMountStorageList;
 
     public ListFragment() {
@@ -80,7 +82,6 @@ public class ListFragment extends Fragment {
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO: 2017/11/2 弹出新建文件夹窗口
                 LayoutInflater inflater = LayoutInflater.from(getActivity());
                 View view = inflater.inflate(R.layout.new_folder_dialog, null);
                 final EditText nameEdit = (EditText)view.findViewById(R.id.name);
@@ -92,7 +93,31 @@ public class ListFragment extends Fragment {
                 builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
                     @Override
                     public void onClick(DialogInterface dialog, int which){
-                        createFolder(mCurPath + File.separator + nameEdit.getEditableText().toString());
+                        if(null != mCreateFolderTask && mCreateFolderTask.getStatus() == AsyncTask.Status.RUNNING){
+                            mCreateFolderTask.cancel(true);
+                        }
+                        mCreateFolderTask = new CreateFolderTask(mContext, mCurPath + File.separator + nameEdit.getEditableText().toString());
+                        mCreateFolderTask.execute();
+                        mCreateFolderTask.setCreateFolderFinish(new CreateFolderTask.CreateFolderFinish() {
+                            @Override
+                            public void createFolderDone(int errorCode) {
+                                switch (errorCode){
+                                    case CreateFolderTask.ERROR_CODE_PARAM_ERROR:
+                                        Toast.makeText(mContext, R.string.create_folder_illegal_tips, Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case CreateFolderTask.ERROR_CODE_FOLDER_EXIST:
+                                        Toast.makeText(mContext, R.string.create_folder_exist_tips, Toast.LENGTH_SHORT).show();
+                                        break;
+                                    case CreateFolderTask.ERROR_CODE_MKDIR_ERROR:
+                                        Toast.makeText(mContext, R.string.create_folder_unknown_error_tips, Toast.LENGTH_SHORT).show();
+                                        break;
+                                    default:
+                                        updateCurrentList();
+                                        Toast.makeText(mContext, R.string.create_folder_success_tips, Toast.LENGTH_SHORT).show();
+                                        break;
+                                }
+                            }
+                        });
                     }
                 });
 
@@ -343,19 +368,5 @@ public class ListFragment extends Fragment {
         pos.mLastPosition = -1;
         pos.mLastTopOffset = -1;
         mLastPositionList.add(pos);
-    }
-
-    private void createFolder(String path){
-        if(null == path || "".equals(path)){
-            Toast.makeText(mContext, R.string.create_folder_illegal_tips, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        File file = new File(path);
-        if(file.exists() && file.isDirectory()){
-            Toast.makeText(mContext, R.string.folder_exist_tips, Toast.LENGTH_SHORT).show();
-        }else{
-            Log.d("huangcx", "ret = " + file.mkdirs());
-        }
     }
 }
