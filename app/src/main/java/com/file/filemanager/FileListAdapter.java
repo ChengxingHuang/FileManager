@@ -6,19 +6,15 @@ import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> implements MainActivity.MainActivityCallBack{
@@ -79,11 +75,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                     if (fileInfo.isFolder()) {
                         //进入文件夹
                         Log.d(TAG, fileInfo.getFileAbsolutePath());
-                        if (fileInfo.getChildFilesCount(mContext) > 0) {
-                            mListFragment.enterPath(fileInfo.getFileAbsolutePath(), true);
-                        } else {
-                            mListFragment.enterEmptyPath(fileInfo.getFileAbsolutePath());
-                        }
+                        mListFragment.showAbsolutePathFiles(fileInfo.getFileAbsolutePath());
                     } else {
                         String mimeType = fileInfo.getMimeType(fileInfo.getFileAbsolutePath());
                         Log.d(TAG, "mimeType = " + mimeType);
