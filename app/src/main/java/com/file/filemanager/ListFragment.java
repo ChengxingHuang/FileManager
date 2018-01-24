@@ -20,7 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.file.filemanager.Task.CreateFolderTask;
-import com.file.filemanager.Task.ShowListTask;
+import com.file.filemanager.Task.ShowFilesTask;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -51,7 +51,7 @@ public class ListFragment extends Fragment {
     private boolean mIsShowSearchList = false;
 
     private CreateFolderTask mCreateFolderTask;
-    private ShowListTask mShowListTask;
+    private ShowFilesTask mShowFilesTask;
 
     public ListFragment() {
     }
@@ -274,13 +274,13 @@ public class ListFragment extends Fragment {
     }
 
     public void updateCurrentList(){
-        if(null != mShowListTask && mShowListTask.getStatus() == AsyncTask.Status.RUNNING){
-            mShowListTask.cancel(true);
+        if(null != mShowFilesTask && mShowFilesTask.getStatus() == AsyncTask.Status.RUNNING){
+            mShowFilesTask.cancel(true);
         }
 
-        mShowListTask = new ShowListTask(mContext, mCurPath);
-        mShowListTask.execute(mFileList);
-        mShowListTask.setShowListFinish(new ShowListTask.ShowListFinish() {
+        mShowFilesTask = new ShowFilesTask(mContext, mCurPath);
+        mShowFilesTask.execute(mFileList);
+        mShowFilesTask.setShowListFinish(new ShowFilesTask.ShowListFinish() {
             @Override
             public void showNormalPath() {
                 Collections.sort(mFileList, new FileInfo.NameComparator(mContext));

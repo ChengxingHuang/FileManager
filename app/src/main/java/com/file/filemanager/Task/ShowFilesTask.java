@@ -13,7 +13,7 @@ import java.util.List;
  * Created by huang on 2018/1/22.
  */
 
-public class ShowListTask extends AsyncTask<List, Void, Integer> {
+public class ShowFilesTask extends AsyncTask<List, Void, Integer> {
 
     public static final int ERROR_CODE_SUCCESS = 0x00;
     public static final int ERROR_CODE_PATH_ERROR = 0x01;
@@ -23,7 +23,7 @@ public class ShowListTask extends AsyncTask<List, Void, Integer> {
     private String mPath;
     private ShowListFinish mShowListFinish;
 
-    public ShowListTask(Context context, String path){
+    public ShowFilesTask(Context context, String path){
         mContext = context;
         mPath = path;
     }
