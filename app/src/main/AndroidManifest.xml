@@ -30,6 +30,12 @@
         </activity>
         <activity android:name=".AboutActivity">
         </activity>
+        <activity android:name=".PieChartActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.pie_chart_activity"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

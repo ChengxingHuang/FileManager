@@ -1,39 +1,31 @@
 package com.file.filemanager;
 
-import android.graphics.Color;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.SimpleAdapter;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.file.filemanager.Task.AssortTask;
-import com.file.filemanager.Task.SearchTask;
-import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
-import com.github.mikephil.charting.utils.ColorTemplate;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
-public class CategoryFragment extends Fragment implements OnChartValueSelectedListener {
+public class CategoryFragment extends Fragment implements View.OnClickListener {
 
     public static final int CATEGORY_GRID_COUNT = 9;
     public static final String KEY_ICON = "icon";
@@ -48,15 +40,12 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
                     R.string.category_document, R.string.category_apk, R.string.category_archive,
                      R.string.category_favorite, R.string.category_qq, R.string.category_wechat};
 
-    private int[] mChartParties = {R.string.category_image, R.string.category_music, R.string.category_video,
-                    R.string.category_document, R.string.category_apk, R.string.category_others};
-
     private List<Map<String, Object>> mCategoryList = new ArrayList<Map<String, Object>>();
 
     private GridView mCategoryGrid;
-    private PieChart mChart;
-    private TextView mNoFileText;
     private RecyclerView mCategoryRecyclerView;
+    private Button mPhoneChartButton;
+    private Button mSDCardChartButton;
     private FileListAdapter mFileListAdapter;
 
     private ArrayList<FileInfo> mCurList = new ArrayList<FileInfo>();
@@ -85,15 +74,15 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
             }
         });
 
-        mChart = (PieChart)v.findViewById(R.id.chart);
-        initChart();
-
-        mNoFileText = (TextView)v.findViewById(R.id.no_files_text);
-
         mCategoryRecyclerView = (RecyclerView)v.findViewById(R.id.category_list);
         mCategoryRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mCategoryRecyclerView.setHasFixedSize(true);
         mCategoryRecyclerView.addItemDecoration(new ListItemDecoration(getActivity(), LinearLayoutManager.VERTICAL));
+
+        mPhoneChartButton = (Button)v.findViewById(R.id.phone_chart);
+        mPhoneChartButton.setOnClickListener(this);
+        mSDCardChartButton = (Button)v.findViewById(R.id.sdcard_chart);
+        mSDCardChartButton.setOnClickListener(this);
 
         return v;
     }
@@ -101,8 +90,20 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     @Override
     public void onResume() {
         super.onResume();
-
         initData();
+    }
+
+    @Override
+    public void onClick(View v) {
+        if(v == mPhoneChartButton){
+            Intent intent = new Intent("android.intent.action.pie_chart_activity");
+            intent.putExtra("TYPE", 0);
+            startActivity(intent);
+        }else if(v == mSDCardChartButton){
+            Intent intent = new Intent("android.intent.action.pie_chart_activity");
+            intent.putExtra("TYPE", 1);
+            startActivity(intent);
+        }
     }
 
     public ArrayList<FileInfo> getCurCategoryList(){
@@ -113,7 +114,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
     }
 
     public void updateSearchList(ArrayList<FileInfo> list){
-        hideGridAndChart();
+        mCategoryGrid.setVisibility(View.GONE);
 
         mCurList.clear();
         for (int i = 0; i < list.size(); i++) {
@@ -133,7 +134,7 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
 
     public void backToPreList() {
         if (-1 == mCurCategoryIndex) {
-            showGridAndChart();
+            mCategoryGrid.setVisibility(View.VISIBLE);
         } else{
             showCategoryList();
         }
@@ -151,24 +152,12 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
 
             mFileListAdapter = new FileListAdapter(getActivity(), mCurList, null);
             mCategoryRecyclerView.setAdapter(mFileListAdapter);
+
+            mCategoryGrid.setVisibility(View.GONE);
         }else{
             String[] category = getActivity().getResources().getStringArray(R.array.category);
-            mNoFileText.setVisibility(View.VISIBLE);
-            mNoFileText.setText(category[mCurCategoryIndex]);
+            Toast.makeText(getActivity(), category[mCurCategoryIndex], Toast.LENGTH_SHORT).show();
         }
-
-        hideGridAndChart();
-
-    }
-
-    private void hideGridAndChart(){
-        mCategoryGrid.setVisibility(View.GONE);
-        mChart.setVisibility(View.GONE);
-    }
-
-    private void showGridAndChart(){
-        mCategoryGrid.setVisibility(View.VISIBLE);
-        mChart.setVisibility(View.VISIBLE);
     }
 
     public boolean onBackPressed(){
@@ -177,9 +166,8 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
             showCategoryList();
             return true;
         }
-        if(mCurList.size() > 0 || mNoFileText.getVisibility() == View.VISIBLE){
-            showGridAndChart();
-            mNoFileText.setVisibility(View.GONE);
+        if(mCurList.size() > 0){
+            mCategoryGrid.setVisibility(View.VISIBLE);
             mCategoryRecyclerView.setVisibility(View.GONE);
             mCurList.clear();
             mCurCategoryIndex = -1;
@@ -193,90 +181,6 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
             Collections.sort(mCurList, new FileInfo.NameComparator(getActivity()));
             mFileListAdapter.notifyDataSetChanged();
         }
-    }
-
-    private void initChart(){
-        mChart.setUsePercentValues(true);
-        mChart.setExtraOffsets(5, 10, 5, 5);
-
-        mChart.setDragDecelerationFrictionCoef(0.95f);
-
-        mChart.setDrawHoleEnabled(false);
-
-        mChart.setTransparentCircleColor(Color.WHITE);
-        mChart.setTransparentCircleAlpha(110);
-
-        mChart.setHoleRadius(58f);
-        mChart.setTransparentCircleRadius(61f);
-
-        mChart.setDrawCenterText(true);
-
-        mChart.setRotationAngle(0);
-        // enable rotation of the chart by touch
-        mChart.setRotationEnabled(true);
-        mChart.setHighlightPerTapEnabled(true);
-
-        // add a selection listener
-        mChart.setOnChartValueSelectedListener(this);
-
-        setChartData(5, 100);
-
-        mChart.animateY(1400, Easing.EasingOption.EaseInOutQuad);
-    }
-
-    private void setChartData(int count, float range) {
-        float mult = range;
-        ArrayList<Entry> yValues1 = new ArrayList<Entry>();
-
-        for (int i = 0; i < count + 1; i++) {
-            yValues1.add(new Entry((float) (Math.random() * mult) + mult / 5, i));
-        }
-
-        ArrayList<String> xValues = new ArrayList<String>();
-
-        for (int i = 0; i < count + 1; i++)
-            xValues.add(getActivity().getResources().getString(mChartParties[i % mChartParties.length]));
-
-        PieDataSet dataSet = new PieDataSet(yValues1, "");
-        dataSet.setSliceSpace(3f);
-        dataSet.setSelectionShift(5f);
-
-        ArrayList<Integer> colors = new ArrayList<Integer>();
-
-        for (int c : ColorTemplate.VORDIPLOM_COLORS)
-            colors.add(c);
-
-        for (int c : ColorTemplate.JOYFUL_COLORS)
-            colors.add(c);
-
-        for (int c : ColorTemplate.COLORFUL_COLORS)
-            colors.add(c);
-
-        for (int c : ColorTemplate.LIBERTY_COLORS)
-            colors.add(c);
-
-        for (int c : ColorTemplate.PASTEL_COLORS)
-            colors.add(c);
-
-        for (int c : ColorTemplate.COLORFUL_COLORS)
-            colors.add(c);
-
-        colors.add(ColorTemplate.getHoloBlue());
-
-        dataSet.setColors(colors);
-
-        PieData data = new PieData(xValues, dataSet);
-        data.setValueFormatter(new PercentFormatter());
-        data.setValueTextSize(13f);
-        data.setValueTextColor(Color.BLACK);
-        //data.setValueTypeface(tf);
-        mChart.setData(data);
-        mChart.setDescription("");
-
-        // undo all highlights
-        mChart.highlightValues(null);
-
-        mChart.invalidate();
     }
 
     private void initData(){
@@ -308,15 +212,22 @@ public class CategoryFragment extends Fragment implements OnChartValueSelectedLi
             }
         });
         mAssortTask.execute(mCategoryListManager);
-    }
 
-    @Override
-    public void onValueSelected(Entry entry, int i, Highlight highlight) {
-
-    }
-
-    @Override
-    public void onNothingSelected() {
-
+        List<MountStorageManager.MountStorage> mountStorageList = MountStorageManager.getInstance().getMountStorageList();
+        ListIterator<MountStorageManager.MountStorage> iterator = mountStorageList.listIterator();
+        while(iterator.hasNext()){
+            MountStorageManager.MountStorage mountStorage = iterator.next();
+            if(!mountStorage.mRemovable) {
+                mPhoneChartButton.setVisibility(View.VISIBLE);
+                mPhoneChartButton.setText(mountStorage.mDescription + "\n"
+                        + mountStorage.mTotalSpace + " "
+                        + mountStorage.mAvailableSpace);
+            }else{
+                mSDCardChartButton.setVisibility(View.VISIBLE);
+                mSDCardChartButton.setText(mountStorage.mDescription + "\n"
+                        + mountStorage.mTotalSpace + " "
+                        + mountStorage.mAvailableSpace);
+            }
+        }
     }
 }
