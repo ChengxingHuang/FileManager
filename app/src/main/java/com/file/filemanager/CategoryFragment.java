@@ -192,6 +192,7 @@ public class CategoryFragment extends Fragment implements View.OnClickListener {
         mAssortTask.setAssortFinish(new AssortTask.AssortFinish() {
             @Override
             public void assortDone() {
+                mCategoryList.clear();
                 for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
                     Map<String, Object> map = new HashMap<>();
                     map.put(KEY_ICON, mCategoryIcon[i]);
