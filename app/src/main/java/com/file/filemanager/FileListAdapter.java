@@ -122,6 +122,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 int id = item.getItemId();
                 switch (id){
                     case R.id.copy:
+                        ((MainActivity) mListFragment.getActivity()).setPasteIconVisible(true);
                         Log.d("huangcx", "copy");
                         break;
                     case R.id.cut:

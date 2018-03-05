@@ -199,6 +199,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //默认情况不显示黏贴按键
+        mPasteMenuItem.setVisible(false);
+        mPasteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                mPasteMenuItem.setVisible(false);
+                return true;
+            }
+        });
+
         return true;
     }
 
