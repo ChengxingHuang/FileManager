@@ -100,4 +100,6 @@
     <string name="create_folder_illegal_tips">Please input legal string to create folder</string>
     <string name="create_folder_unknown_error_tips">Create folder error</string>
     <string name="create_folder_success_tips">Create folder successfully</string>
+
+    <string name="copying">Copying</string>
 </resources>

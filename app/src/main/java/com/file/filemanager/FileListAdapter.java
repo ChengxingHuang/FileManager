@@ -15,6 +15,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
 
+import com.file.filemanager.Task.PasteTask;
+
 import java.util.List;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> implements MainActivity.MainActivityCallBack{
@@ -113,7 +115,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         });
     }
 
-    private void showPopupMenu(View anchor, FileInfo fileInfo){
+    private void showPopupMenu(View anchor, final FileInfo fileInfo){
         mPopupMenu = new PopupMenu(mContext, anchor);
         mPopupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, mPopupMenu.getMenu());
         mPopupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
@@ -123,7 +125,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 switch (id){
                     case R.id.copy:
                         ((MainActivity) mListFragment.getActivity()).setPasteIconVisible(true);
-                        Log.d("huangcx", "copy");
+                        ((MainActivity) mListFragment.getActivity()).setSrcPastePath(fileInfo.getFileAbsolutePath());
                         break;
                     case R.id.cut:
                         break;

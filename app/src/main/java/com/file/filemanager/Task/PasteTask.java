@@ -5,10 +5,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Created by huang on 2018/3/4.
@@ -41,11 +38,13 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
             return ERROR_CODE_SRC_FILE_NOT_EXIST;
         }
 
-        File dstFile = new File(dstPath);
-        if(dstFile.isDirectory()){
+        if(srcFile.isDirectory()){
             //copy文件夹
         }else{
             //copy文件
+            String[] tmp = srcPath.split("/");
+            File dstFile = new File(dstPath + "/" + tmp[tmp.length - 1]);
+            copyFile(srcFile, dstFile);
         }
 
         return ERROR_CODE_SUCCESS;

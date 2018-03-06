@@ -1,6 +1,7 @@
 package com.file.filemanager;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,6 +32,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.file.filemanager.Task.PasteTask;
 import com.file.filemanager.Task.SearchTask;
 
 import java.util.ArrayList;
@@ -56,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private SearchView mSearchView;
 
     private SearchTask mSearchTask;
+
+    private String mCopySrcPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -204,6 +208,26 @@ public class MainActivity extends AppCompatActivity {
         mPasteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
+                PasteTask task = new PasteTask();
+                String[] params = {mCopySrcPath, mAdapter.getCurPath()};
+                task.execute(params);
+
+                String tmp[] = mCopySrcPath.split("/");
+                String fileName = tmp[tmp.length - 1];
+                ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+                dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                dialog.setTitle(R.string.copying);
+                dialog.setMessage(fileName);
+                dialog.setMax(100);
+                dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "aa",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        });
+                dialog.show();
+
                 mPasteMenuItem.setVisible(false);
                 return true;
             }
@@ -293,6 +317,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void setPasteIconVisible(boolean visible){
         mPasteMenuItem.setVisible(visible);
+    }
+
+    public void setSrcPastePath(String srcPath){
+        mCopySrcPath = srcPath;
     }
 
     public void setRenameAndDetailMenuVisible(boolean visible){
