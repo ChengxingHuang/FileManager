@@ -15,12 +15,19 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
 
     private static final String TAG = "PasteTask";
 
-    private static final int ERROR_CODE_SUCCESS = 0x00;
+    public static final int ERROR_CODE_SUCCESS = 0x00;
     private static final int ERROR_CODE_PARAMS_ERROR = 0x01;
     private static final int ERROR_CODE_SRC_FILE_NOT_EXIST = 0x02;
     private static final int ERROR_CODE_EXCEPTION = 0x04;
 
     private static final int BUFFER_SIZE = 1024;
+
+    private HandlePasteMessage mHandlePasteMsg;
+
+    public interface HandlePasteMessage{
+        void updateProgress(int value);
+        void pasteFinish(int errorCode);
+    };
 
     //param[0]:srcPath
     //param[1]:dstPath
@@ -50,17 +57,38 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
         return ERROR_CODE_SUCCESS;
     }
 
+    @Override
+    protected void onProgressUpdate(Integer... values) {
+        mHandlePasteMsg.updateProgress(values[0]);
+    }
+
+    @Override
+    protected void onPostExecute(Integer result) {
+        mHandlePasteMsg.pasteFinish(result);
+    }
+
+    public void setPasteFinish(HandlePasteMessage pasteFinish){
+        mHandlePasteMsg = pasteFinish;
+    }
+
     private int copyFile(File srcFile, File dstFile){
         int ret = ERROR_CODE_SUCCESS;
         FileInputStream ins = null;
         FileOutputStream fos = null;
+
         try {
+            long readSize = 0;
+            long srcFileSize = srcFile.length();
             ins = new FileInputStream(srcFile);
             fos = new FileOutputStream(dstFile);
             byte[] buffer = new byte[BUFFER_SIZE];
-            int bufferRead = 0;
-            while (-1 != (bufferRead = ins.read(buffer))) {
-                fos.write(buffer, 0, bufferRead);
+            int readBuffer = 0;
+
+            while (-1 != (readBuffer = ins.read(buffer))) {
+                fos.write(buffer, 0, readBuffer);
+                readSize += readBuffer;
+                float percent = ((float)readSize / (float)srcFileSize) * 100;
+                publishProgress(Math.round(percent));
             }
         } catch (Exception e){
             Log.d(TAG, "copyFile IOException 1!");

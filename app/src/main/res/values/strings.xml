@@ -102,4 +102,5 @@
     <string name="create_folder_success_tips">Create folder successfully</string>
 
     <string name="copying">Copying</string>
+    <string name="copy_fail">Copy failed</string>
 </resources>

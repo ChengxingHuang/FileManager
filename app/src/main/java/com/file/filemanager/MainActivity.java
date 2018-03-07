@@ -2,6 +2,7 @@ package com.file.filemanager;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private Menu mClickMenu;
     private Menu mNormalMenu;
     private MainActivityCallBack mCallBack;
+    private Context mContext;
 
     private MenuItem mPasteMenuItem;
     private MenuItem mSearchMenuItem;
@@ -60,11 +62,14 @@ public class MainActivity extends AppCompatActivity {
     private SearchTask mSearchTask;
 
     private String mCopySrcPath;
+    private ProgressDialog mCopyProcessDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mContext = this;
 
         MountStorageManager storageManager = MountStorageManager.getInstance();
         storageManager.init(this);
@@ -153,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
                 if(!"".equals(newText)){
                     // 按照路径或分类查找
                     String[] params = {mAdapter.getCurPath(), newText};
-                    mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), MainActivity.this);
+                    mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), mContext);
                     mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
                         @Override
                         public void searchFinish(ArrayList<FileInfo> list) {
@@ -211,22 +216,48 @@ public class MainActivity extends AppCompatActivity {
                 PasteTask task = new PasteTask();
                 String[] params = {mCopySrcPath, mAdapter.getCurPath()};
                 task.execute(params);
+                task.setPasteFinish(new PasteTask.HandlePasteMessage() {
+                    @Override
+                    public void pasteFinish(int errorCode) {
+                        mCopyProcessDialog.dismiss();
+                        // TODO: 2018/3/6 用ProcessDialog处理
+                        if(PasteTask.ERROR_CODE_SUCCESS != errorCode) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+                            builder.setTitle(R.string.copy_fail);
+                            String tmp[] = mCopySrcPath.split("/");
+                            String fileName = tmp[tmp.length - 1];
+                            builder.setMessage(fileName);
+                            builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            builder.show();
+                        }
+                    }
+
+                    @Override
+                    public void updateProgress(int value) {
+                        mCopyProcessDialog.setProgress(value);
+                    }
+                });
 
                 String tmp[] = mCopySrcPath.split("/");
                 String fileName = tmp[tmp.length - 1];
-                ProgressDialog dialog = new ProgressDialog(MainActivity.this);
-                dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                dialog.setTitle(R.string.copying);
-                dialog.setMessage(fileName);
-                dialog.setMax(100);
-                dialog.setButton(DialogInterface.BUTTON_NEGATIVE, "aa",
+                mCopyProcessDialog = new ProgressDialog(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+                mCopyProcessDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                mCopyProcessDialog.setTitle(R.string.copying);
+                mCopyProcessDialog.setMessage(fileName);
+                mCopyProcessDialog.setMax(100);
+                mCopyProcessDialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getResources().getString(android.R.string.cancel),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
                             }
                         });
-                dialog.show();
+                mCopyProcessDialog.show();
 
                 mPasteMenuItem.setVisible(false);
                 return true;
@@ -237,16 +268,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showSortByDialog(){
-        int defaultSortBy = PreferenceUtils.getSortByValue(MainActivity.this);
+        int defaultSortBy = PreferenceUtils.getSortByValue(mContext);
         String[] sortByString = getResources().getStringArray(R.array.sort_by);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
         AlertDialog dialog = builder.create();
         builder.setTitle(R.string.sort_by);
         builder.setSingleChoiceItems(sortByString, defaultSortBy, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                PreferenceUtils.setSortByValue(MainActivity.this, which);
+                PreferenceUtils.setSortByValue(mContext, which);
                 mAdapter.updateCurrentList();
                 dialog.dismiss();
             }
@@ -255,16 +286,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showDirectorySortModeDialog(){
-        int defaultDirectorySortMode = PreferenceUtils.getDirectorSortModeValue(MainActivity.this);
+        int defaultDirectorySortMode = PreferenceUtils.getDirectorSortModeValue(mContext);
         String[] directorySortModeString = getResources().getStringArray(R.array.directory_sort_mode);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.AlertDialogCustom));
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
         AlertDialog dialog = builder.create();
         builder.setTitle(R.string.directory_sort_mode);
         builder.setSingleChoiceItems(directorySortModeString, defaultDirectorySortMode, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                PreferenceUtils.setDirectorSortModeValue(MainActivity.this, which);
+                PreferenceUtils.setDirectorSortModeValue(mContext, which);
                 mAdapter.updateCurrentList();
                 dialog.dismiss();
             }
@@ -278,7 +309,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE
                 || requestCode == PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(MainActivity.this, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
             }
             return;
         }
