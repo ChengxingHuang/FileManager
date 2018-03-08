@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private SearchView mSearchView;
 
     private SearchTask mSearchTask;
+    private PasteTask mPasteTask;
 
     private String mCopySrcPath;
     private ProgressDialog mCopyProcessDialog;
@@ -213,14 +214,14 @@ public class MainActivity extends AppCompatActivity {
         mPasteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                PasteTask task = new PasteTask();
+                mPasteTask = new PasteTask();
                 String[] params = {mCopySrcPath, mAdapter.getCurPath()};
-                task.execute(params);
-                task.setPasteFinish(new PasteTask.HandlePasteMessage() {
+                mPasteTask.execute(params);
+                mPasteTask.setPasteFinish(new PasteTask.HandlePasteMessage() {
                     @Override
                     public void pasteFinish(int errorCode) {
                         mCopyProcessDialog.dismiss();
-                        // TODO: 2018/3/6 用ProcessDialog处理
+                        // TODO: 2018/3/6 用ProcessDialog处理？？？
                         if(PasteTask.ERROR_CODE_SUCCESS != errorCode) {
                             AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
                             builder.setTitle(R.string.copy_fail);
@@ -234,6 +235,9 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                             builder.show();
+                            // TODO: 2018/3/7 复制失败后需要删除已经复制的部分
+                        }else{
+                            mAdapter.updateCurrentList();
                         }
                     }
 
@@ -254,7 +258,9 @@ public class MainActivity extends AppCompatActivity {
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-
+                                mPasteTask.cancel(true);
+                                // TODO: 2018/3/7 取消复制后需要删除已经复制的部分
+                                mCopyProcessDialog.dismiss();
                             }
                         });
                 mCopyProcessDialog.show();

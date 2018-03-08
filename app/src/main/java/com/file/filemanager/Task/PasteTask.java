@@ -85,6 +85,8 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
             int readBuffer = 0;
 
             while (-1 != (readBuffer = ins.read(buffer))) {
+                if(isCancelled())
+                    break;
                 fos.write(buffer, 0, readBuffer);
                 readSize += readBuffer;
                 float percent = ((float)readSize / (float)srcFileSize) * 100;
