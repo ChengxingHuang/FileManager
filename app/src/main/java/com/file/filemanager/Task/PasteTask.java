@@ -19,6 +19,7 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
     private static final int ERROR_CODE_PARAMS_ERROR = 0x01;
     private static final int ERROR_CODE_SRC_FILE_NOT_EXIST = 0x02;
     private static final int ERROR_CODE_EXCEPTION = 0x04;
+    private static final int ERROR_CODE_MKDIR_ERROR = 0x05;
 
     private static final int BUFFER_SIZE = 1024;
 
@@ -47,14 +48,13 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
 
         if(srcFile.isDirectory()){
             //copy文件夹
+            return copyDirectory(srcPath, dstPath);
         }else{
             //copy文件
             String[] tmp = srcPath.split("/");
             File dstFile = new File(dstPath + "/" + tmp[tmp.length - 1]);
-            copyFile(srcFile, dstFile);
+            return copyFile(srcFile, dstFile);
         }
-
-        return ERROR_CODE_SUCCESS;
     }
 
     @Override
@@ -116,7 +116,29 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
         return ret;
     }
 
-    private void copyDirectory(){
+    private int copyDirectory(String srcPath, String dstPath){
+        int ret = ERROR_CODE_SUCCESS;
+        File srcFile = new File(srcPath);
+        File[] files = srcFile.listFiles();
+        for(int i = 0; i < files.length; i++){
+            String tmp[] = files[i].toString().split("/");
+            String srcName = tmp[tmp.length -1];
+            File dstFile = new File(dstPath + "/" + srcName);
+            if(files[i].isDirectory()){
+                if(!dstFile.mkdirs())
+                    return ERROR_CODE_MKDIR_ERROR;
+                ret = copyDirectory(files[i].toString(), dstFile.toString());
+                if(ERROR_CODE_SUCCESS != ret){
+                    break;
+                }
+            }else{
+                ret = copyFile(files[i], dstFile);
+                if(ERROR_CODE_SUCCESS != ret){
+                    break;
+                }
+            }
+        }
 
+        return ret;
     }
 }
