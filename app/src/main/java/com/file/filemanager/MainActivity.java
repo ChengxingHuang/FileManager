@@ -36,6 +36,7 @@ import android.widget.Toast;
 import com.file.filemanager.Task.PasteTask;
 import com.file.filemanager.Task.SearchTask;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -58,12 +59,14 @@ public class MainActivity extends AppCompatActivity {
     private MenuItem mHomeMenuItem;
     private MenuItem mSortMenuItem;
     private SearchView mSearchView;
+    AlertDialog.Builder mDialogBuilder;
 
     private SearchTask mSearchTask;
     private PasteTask mPasteTask;
 
     private String mCopySrcPath;
     private ProgressDialog mCopyProcessDialog;
+    private boolean mIsCut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -214,56 +217,17 @@ public class MainActivity extends AppCompatActivity {
         mPasteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                mPasteTask = new PasteTask(false);
                 String[] params = {mCopySrcPath, mAdapter.getCurPath()};
-                mPasteTask.execute(params);
-                mPasteTask.setPasteFinish(new PasteTask.HandlePasteMessage() {
-                    @Override
-                    public void pasteFinish(int errorCode) {
-                        mCopyProcessDialog.dismiss();
-                        // TODO: 2018/3/6 用ProcessDialog处理？？？
-                        if(PasteTask.ERROR_CODE_SUCCESS != errorCode) {
-                            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-                            builder.setTitle(R.string.copy_fail);
-                            String tmp[] = mCopySrcPath.split("/");
-                            String fileName = tmp[tmp.length - 1];
-                            builder.setMessage(fileName);
-                            builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            });
-                            builder.show();
-                            // TODO: 2018/3/7 复制失败后需要删除已经复制的部分
-                        }else{
-                            mAdapter.updateCurrentList();
-                        }
-                    }
-
-                    @Override
-                    public void updateProgress(int value) {
-                        mCopyProcessDialog.setProgress(value);
-                    }
-                });
-
                 String tmp[] = mCopySrcPath.split("/");
                 String fileName = tmp[tmp.length - 1];
-                mCopyProcessDialog = new ProgressDialog(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-                mCopyProcessDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                mCopyProcessDialog.setTitle(R.string.copying);
-                mCopyProcessDialog.setMessage(fileName);
-                mCopyProcessDialog.setMax(100);
-                mCopyProcessDialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getResources().getString(android.R.string.cancel),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                mPasteTask.cancel(true);
-                                // TODO: 2018/3/7 取消复制后需要删除已经复制的部分
-                                mCopyProcessDialog.dismiss();
-                            }
-                        });
-                mCopyProcessDialog.show();
+                File dstFile = new File(mAdapter.getCurPath() + "/" + fileName);
+
+                if(dstFile.exists()) {
+                    // TODO: 2018/3/13 自己覆盖自己的情况还没有处理 
+                    showCopyConfirmDialog(params, fileName);
+                }else{
+                    startPaste(params, fileName);
+                }
 
                 mPasteMenuItem.setVisible(false);
                 return true;
@@ -273,14 +237,78 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void startPaste(String[] params, final String fileName){
+        mPasteTask = new PasteTask(mIsCut);
+        mPasteTask.execute(params);
+        mPasteTask.setPasteFinish(new PasteTask.HandlePasteMessage() {
+            @Override
+            public void pasteFinish(int errorCode) {
+                mCopyProcessDialog.dismiss();
+                if (PasteTask.ERROR_CODE_SUCCESS != errorCode) {
+                    mDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+                    mDialogBuilder.setTitle(R.string.copy_fail);
+                    mDialogBuilder.setMessage(fileName);
+                    mDialogBuilder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    mDialogBuilder.show();
+                } else {
+                    mAdapter.updateCurrentList();
+                }
+            }
+
+            @Override
+            public void updateProgress(int value) {
+                mCopyProcessDialog.setProgress(value);
+            }
+        });
+
+        mCopyProcessDialog = new ProgressDialog(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        mCopyProcessDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        mCopyProcessDialog.setTitle(R.string.copying);
+        mCopyProcessDialog.setMessage(fileName);
+        mCopyProcessDialog.setMax(100);
+        mCopyProcessDialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getResources().getString(android.R.string.cancel),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mPasteTask.cancel(true);
+                        mCopyProcessDialog.dismiss();
+                    }
+                });
+        mCopyProcessDialog.show();
+    }
+
+    private void showCopyConfirmDialog(final String[] params, final String fileName){
+        mDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        mDialogBuilder.setTitle(R.string.paste);
+        mDialogBuilder.setMessage(fileName + " " + getResources().getString(R.string.is_exist));
+        mDialogBuilder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        mDialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                startPaste(params, fileName);
+                dialog.dismiss();
+            }
+        });
+        mDialogBuilder.show();
+    }
+
     private void showSortByDialog(){
         int defaultSortBy = PreferenceUtils.getSortByValue(mContext);
         String[] sortByString = getResources().getStringArray(R.array.sort_by);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-        AlertDialog dialog = builder.create();
-        builder.setTitle(R.string.sort_by);
-        builder.setSingleChoiceItems(sortByString, defaultSortBy, new DialogInterface.OnClickListener() {
+        mDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        mDialogBuilder.setTitle(R.string.sort_by);
+        mDialogBuilder.setSingleChoiceItems(sortByString, defaultSortBy, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 PreferenceUtils.setSortByValue(mContext, which);
@@ -288,17 +316,16 @@ public class MainActivity extends AppCompatActivity {
                 dialog.dismiss();
             }
         });
-        builder.show();
+        mDialogBuilder.show();
     }
 
     private void showDirectorySortModeDialog(){
         int defaultDirectorySortMode = PreferenceUtils.getDirectorSortModeValue(mContext);
         String[] directorySortModeString = getResources().getStringArray(R.array.directory_sort_mode);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-        AlertDialog dialog = builder.create();
-        builder.setTitle(R.string.directory_sort_mode);
-        builder.setSingleChoiceItems(directorySortModeString, defaultDirectorySortMode, new DialogInterface.OnClickListener() {
+        mDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        mDialogBuilder.setTitle(R.string.directory_sort_mode);
+        mDialogBuilder.setSingleChoiceItems(directorySortModeString, defaultDirectorySortMode, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 PreferenceUtils.setDirectorSortModeValue(mContext, which);
@@ -307,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        builder.show();
+        mDialogBuilder.show();
     }
 
     @Override
@@ -358,6 +385,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void setSrcPastePath(String srcPath){
         mCopySrcPath = srcPath;
+    }
+
+    public void setCutMode(boolean isCut){
+        mIsCut = isCut;
     }
 
     public void setRenameAndDetailMenuVisible(boolean visible){

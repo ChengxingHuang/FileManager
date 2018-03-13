@@ -105,4 +105,5 @@
     <string name="copy_fail">Copy failed</string>
     <string name="delete_success">Delete success</string>
     <string name="delete_fail">Delete failed</string>
+    <string name="is_exist">is exist.Do you want to cover it?</string>
 </resources>

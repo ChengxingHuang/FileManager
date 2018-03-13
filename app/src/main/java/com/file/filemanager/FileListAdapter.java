@@ -126,9 +126,13 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 switch (id){
                     case R.id.copy:
                         ((MainActivity) mListFragment.getActivity()).setPasteIconVisible(true);
+                        ((MainActivity) mListFragment.getActivity()).setCutMode(false);
                         ((MainActivity) mListFragment.getActivity()).setSrcPastePath(fileInfo.getFileAbsolutePath());
                         break;
                     case R.id.cut:
+                        ((MainActivity) mListFragment.getActivity()).setPasteIconVisible(true);
+                        ((MainActivity) mListFragment.getActivity()).setCutMode(true);
+                        ((MainActivity) mListFragment.getActivity()).setSrcPastePath(fileInfo.getFileAbsolutePath());
                         break;
                     case R.id.delete:
                         DeleteTask task = new DeleteTask();

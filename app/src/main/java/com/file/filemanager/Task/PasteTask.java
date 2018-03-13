@@ -16,21 +16,29 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
     private static final String TAG = "PasteTask";
 
     public static final int ERROR_CODE_SUCCESS = 0x00;
+
     private static final int ERROR_CODE_PARAMS_ERROR = 0x01;
     private static final int ERROR_CODE_SRC_FILE_NOT_EXIST = 0x02;
     private static final int ERROR_CODE_EXCEPTION = 0x04;
     private static final int ERROR_CODE_MKDIR_ERROR = 0x05;
+
+    private static final int ERROR_CODE_DELETE_FILE_FAIL = 0x06;
+    private static final int ERROR_CODE_DELETE_FOLDER_FAIL = 0x07;
 
     private static final int BUFFER_SIZE = 1024;
 
     private HandlePasteMessage mHandlePasteMsg;
     private boolean mIsCut = false;
     private String mSrcPath;
+    private String mDstPath;
+    private File mCurFilePath;
 
     public interface HandlePasteMessage{
         void updateProgress(int value);
         void pasteFinish(int errorCode);
     };
+
+    // TODO: 2018/3/13 各种异常还没有进行测试
 
     public PasteTask(boolean isCut){
         mIsCut = isCut;
@@ -41,9 +49,9 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
     @Override
     protected Integer doInBackground(String... params) {
         mSrcPath = params[0];
-        String dstPath = params[1];
+        mDstPath = params[1];
 
-        if(null == mSrcPath || null == dstPath){
+        if(null == mSrcPath || null == mDstPath){
             return ERROR_CODE_PARAMS_ERROR;
         }
 
@@ -54,11 +62,11 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
 
         if(srcFile.isDirectory()){
             //copy文件夹
-            return copyDirectory(mSrcPath, dstPath);
+            return copyDirectory(mSrcPath, mDstPath);
         }else{
             //copy文件
             String[] tmp = mSrcPath.split("/");
-            File dstFile = new File(dstPath + "/" + tmp[tmp.length - 1]);
+            File dstFile = new File(mDstPath + "/" + tmp[tmp.length - 1]);
             return copyFile(srcFile, dstFile);
         }
     }
@@ -70,13 +78,26 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
 
     @Override
     protected void onPostExecute(Integer result) {
-
-        //剪切成功，删除原文件
-        if(mIsCut && (ERROR_CODE_SUCCESS == result)){
-            File srcFile = new File(mSrcPath);
-
+        int realResult = result;
+        //黏贴文件失败，删除已经黏贴的部分
+        if((null != mCurFilePath) && (ERROR_CODE_MKDIR_ERROR != result) && (ERROR_CODE_SUCCESS != result)){
+            if(!mCurFilePath.delete()){
+                realResult = ERROR_CODE_DELETE_FILE_FAIL;
+            }
         }
-        mHandlePasteMsg.pasteFinish(result);
+        //剪切成功，删除原文件
+        else if(mIsCut && (ERROR_CODE_SUCCESS == result)){
+            File srcFile = new File(mSrcPath);
+            if(srcFile.isDirectory()){
+                realResult = deleteFolder(srcFile);
+            }else{
+                if(!srcFile.delete()){
+                    realResult = ERROR_CODE_DELETE_FILE_FAIL;
+                }
+            }
+        }
+
+        mHandlePasteMsg.pasteFinish(realResult);
     }
 
     public void setPasteFinish(HandlePasteMessage pasteFinish){
@@ -87,6 +108,7 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
         int ret = ERROR_CODE_SUCCESS;
         FileInputStream ins = null;
         FileOutputStream fos = null;
+        mCurFilePath = dstFile;
 
         try {
             long readSize = 0;
@@ -97,8 +119,12 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
             int readBuffer = 0;
 
             while (-1 != (readBuffer = ins.read(buffer))) {
-                if(isCancelled())
+                //用户取消黏贴，删除已经黏贴的部分
+                if(isCancelled()) {
+                    Log.d(TAG, "User cancel copy, delete " + mCurFilePath.toString());
+                    mCurFilePath.delete();
                     break;
+                }
                 fos.write(buffer, 0, readBuffer);
                 readSize += readBuffer;
                 float percent = ((float)readSize / (float)srcFileSize) * 100;
@@ -137,8 +163,10 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
             String srcName = tmp[tmp.length -1];
             File dstFile = new File(dstPath + "/" + srcName);
             if(files[i].isDirectory()){
-                if(!dstFile.mkdirs())
+                if(!dstFile.mkdirs()) {
+                    Log.d(TAG, "mkdir: " + dstFile.toString() + " failed!");
                     return ERROR_CODE_MKDIR_ERROR;
+                }
                 ret = copyDirectory(files[i].toString(), dstFile.toString());
                 if(ERROR_CODE_SUCCESS != ret){
                     break;
@@ -152,5 +180,24 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
         }
 
         return ret;
+    }
+
+    private int deleteFolder(File path){
+        if (path == null || !path.exists() || !path.isDirectory())
+            return ERROR_CODE_PARAMS_ERROR;
+        for (File file : path.listFiles()) {
+            if (file.isFile()) {
+                if(!file.delete()){
+                    return ERROR_CODE_DELETE_FILE_FAIL;
+                }
+            }else {
+                deleteFolder(file);
+            }
+        }
+        // 删除目录本身
+        if(!path.delete()){
+            return ERROR_CODE_DELETE_FOLDER_FAIL;
+        }
+        return ERROR_CODE_SUCCESS;
     }
 }
