@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
         mPasteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                mPasteTask = new PasteTask();
+                mPasteTask = new PasteTask(false);
                 String[] params = {mCopySrcPath, mAdapter.getCurPath()};
                 mPasteTask.execute(params);
                 mPasteTask.setPasteFinish(new PasteTask.HandlePasteMessage() {

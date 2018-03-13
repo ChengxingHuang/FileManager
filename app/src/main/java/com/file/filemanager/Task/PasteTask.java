@@ -24,34 +24,40 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
     private static final int BUFFER_SIZE = 1024;
 
     private HandlePasteMessage mHandlePasteMsg;
+    private boolean mIsCut = false;
+    private String mSrcPath;
 
     public interface HandlePasteMessage{
         void updateProgress(int value);
         void pasteFinish(int errorCode);
     };
 
+    public PasteTask(boolean isCut){
+        mIsCut = isCut;
+    }
+
     //param[0]:srcPath
     //param[1]:dstPath
     @Override
     protected Integer doInBackground(String... params) {
-        String srcPath = params[0];
+        mSrcPath = params[0];
         String dstPath = params[1];
 
-        if(null == srcPath || null == dstPath){
+        if(null == mSrcPath || null == dstPath){
             return ERROR_CODE_PARAMS_ERROR;
         }
 
-        File srcFile = new File(srcPath);
+        File srcFile = new File(mSrcPath);
         if(!srcFile.exists()){
             return ERROR_CODE_SRC_FILE_NOT_EXIST;
         }
 
         if(srcFile.isDirectory()){
             //copy文件夹
-            return copyDirectory(srcPath, dstPath);
+            return copyDirectory(mSrcPath, dstPath);
         }else{
             //copy文件
-            String[] tmp = srcPath.split("/");
+            String[] tmp = mSrcPath.split("/");
             File dstFile = new File(dstPath + "/" + tmp[tmp.length - 1]);
             return copyFile(srcFile, dstFile);
         }
@@ -64,6 +70,12 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
 
     @Override
     protected void onPostExecute(Integer result) {
+
+        //剪切成功，删除原文件
+        if(mIsCut && (ERROR_CODE_SUCCESS == result)){
+            File srcFile = new File(mSrcPath);
+
+        }
         mHandlePasteMsg.pasteFinish(result);
     }
 
