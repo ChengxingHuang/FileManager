@@ -106,4 +106,8 @@
     <string name="delete_success">Delete success</string>
     <string name="delete_fail">Delete failed</string>
     <string name="is_exist">is exist.Do you want to cover it?</string>
+
+    <string name="modify_date">Modified Date</string>
+    <string name="modify_time">Modified Time</string>
+    <string name="path">Path</string>
 </resources>

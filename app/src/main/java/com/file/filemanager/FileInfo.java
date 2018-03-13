@@ -286,6 +286,10 @@ public class FileInfo {
         }
     }
 
+    public String getFolderSizeHuman(File file){
+        return sizeToHumanString(getFolderSize(file));
+    }
+
     public boolean isFolder() {
         return mIsFolder;
     }

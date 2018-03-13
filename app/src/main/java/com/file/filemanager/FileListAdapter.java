@@ -1,8 +1,11 @@
 package com.file.filemanager;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -158,6 +161,28 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                     case R.id.share:
                         break;
                     case R.id.detail:
+                        String fileName = fileInfo.getFileName();
+                        String size = fileInfo.getFileSize();
+                        if(fileInfo.isFolder()){
+                            size = fileInfo.getFolderSizeHuman(fileInfo.getFile()) + "";
+                        }
+                        String absPath = fileInfo.getFileAbsolutePath();
+                        String path = absPath.substring(0, absPath.length() - fileName.length());
+                        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+                        builder.setTitle(R.string.detail);
+                        builder.setMessage(
+                                mContext.getResources().getString(R.string.name) + " : " + fileName + "\n" +
+                                mContext.getResources().getString(R.string.size) + " : " + size + "\n" +
+                                mContext.getResources().getString(R.string.modify_date) + " : " + fileInfo.getFileLastModifiedDate() + "\n" +
+                                mContext.getResources().getString(R.string.modify_time) + " : " + fileInfo.getFileLastModifiedTime() + "\n" +
+                                mContext.getResources().getString(R.string.path) + " : " + path);
+                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                        builder.show();
                         break;
                 }
                 return true;
