@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
 
+import com.file.filemanager.Task.DeleteTask;
 import com.file.filemanager.Task.PasteTask;
 
 import java.util.List;
@@ -130,6 +131,19 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                     case R.id.cut:
                         break;
                     case R.id.delete:
+                        DeleteTask task = new DeleteTask();
+                        task.execute(fileInfo.getFileAbsolutePath());
+                        task.setHandleDeleteMsg(new DeleteTask.HandlerDeleteMessage() {
+                            @Override
+                            public void deleteFinish(int result) {
+                                if(DeleteTask.ERROR_CODE_DELETE_SUCCESS == result){
+                                    mListFragment.updateCurrentList();
+                                    Toast.makeText(mContext, R.string.delete_success, Toast.LENGTH_SHORT).show();
+                                }else{
+                                    Toast.makeText(mContext, R.string.delete_fail, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
                         break;
                     case R.id.rename:
                         break;
