@@ -90,7 +90,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                         Log.d(TAG, fileInfo.getFileAbsolutePath());
                         mListFragment.showAbsolutePathFiles(fileInfo.getFileAbsolutePath());
                     } else {
-                        String mimeType = fileInfo.getMimeType(fileInfo.getFileAbsolutePath());
+                        String mimeType = fileInfo.getMimeType();
                         Log.d(TAG, "mimeType = " + mimeType);
                         if (null != mimeType) {
                             Intent intent = new Intent();
@@ -99,7 +99,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                             intent.setDataAndType(Uri.fromFile(fileInfo.getFile()), mimeType);
                             mContext.startActivity(intent);
                         } else {
-                            Toast.makeText(mContext, mContext.getResources().getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mContext, mContext.getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -151,6 +151,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                     case R.id.encryption:
                         break;
                     case R.id.share:
+                        share(fileInfo);
                         break;
                     case R.id.detail:
                         showDetails(fileInfo);
@@ -184,7 +185,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         });
     }
 
-    private void rename(final FileInfo info){
+    private void rename(final FileInfo fileInfo){
         LayoutInflater inflater = LayoutInflater.from(mContext);
         View view = inflater.inflate(R.layout.new_folder_dialog, null);
         final EditText nameEdit = (EditText)view.findViewById(R.id.name);
@@ -193,11 +194,11 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         AlertDialog dialog = builder.create();
         dialog.setTitle(R.string.rename);
         dialog.setView(view);
-        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getResources().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                File old = info.getFile();
-                File newFile = new File(info.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
+                File old = fileInfo.getFile();
+                File newFile = new File(fileInfo.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
                 if(newFile.exists()){
                     Toast.makeText(mContext, R.string.file_exist, Toast.LENGTH_SHORT).show();
                 }else{
@@ -208,7 +209,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 }
             }
         });
-        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getResources().getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
@@ -218,7 +219,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
         final Button btn = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
         nameEdit.setHint(null);
-        nameEdit.setText(info.getFileName());
+        nameEdit.setText(fileInfo.getFileName());
         nameEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -248,10 +249,19 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                     btn.setEnabled(true);
             }
         });
-        if(!info.isFolder())
-            nameEdit.setSelection(info.getFileName().lastIndexOf("."));
+        if(!fileInfo.isFolder())
+            nameEdit.setSelection(fileInfo.getFileName().lastIndexOf("."));
         else
-            nameEdit.setSelection(info.getFileName().length());
+            nameEdit.setSelection(fileInfo.getFileName().length());
+    }
+
+    private void share(final FileInfo fileInfo){
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.setType(fileInfo.getMimeType());
+        Uri uri = Uri.fromFile(fileInfo.getFile());
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        mContext.startActivity(Intent.createChooser(intent, mContext.getString(R.string.share)));
     }
 
     private void showDetails(final FileInfo fileInfo){
@@ -265,12 +275,12 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         AlertDialog dialog = builder.create();
         dialog.setTitle(R.string.detail);
         dialog.setMessage(
-                mContext.getResources().getString(R.string.name) + " : " + fileName + "\n" +
-                        mContext.getResources().getString(R.string.size) + " : " + size + "\n" +
-                        mContext.getResources().getString(R.string.modify_date) + " : " + fileInfo.getFileLastModifiedDate() + "\n" +
-                        mContext.getResources().getString(R.string.modify_time) + " : " + fileInfo.getFileLastModifiedTime() + "\n" +
-                        mContext.getResources().getString(R.string.path) + " : " + path);
-        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getResources().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                mContext.getString(R.string.name) + " : " + fileName + "\n" +
+                        mContext.getString(R.string.size) + " : " + size + "\n" +
+                        mContext.getString(R.string.modify_date) + " : " + fileInfo.getFileLastModifiedDate() + "\n" +
+                        mContext.getString(R.string.modify_time) + " : " + fileInfo.getFileLastModifiedTime() + "\n" +
+                        mContext.getString(R.string.path) + " : " + path);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();

@@ -57,7 +57,7 @@ public class FileInfo {
                 mFileTypeImage = mContext.getResources().getDrawable(R.drawable.file_type_folder, null);
             }else{
                 mFileSize = sizeToHumanString(mFile.length());
-                String mimeType = getMimeType(mFileAbsolutePath);
+                String mimeType = getMimeType();
 
                 if(sCustomDrawableIdsMap.containsKey(mimeType)){
                     mFileTypeImage = mContext.getResources().getDrawable(sCustomDrawableIdsMap.get(mimeType), null);
@@ -400,14 +400,14 @@ public class FileInfo {
     /*
      * 根据文件名（包含路径）获取文件的MIME类型
      */
-    public String getMimeType(String path){
-        if((null == path) || (path.endsWith(".")) || (!path.contains("."))){
+    public String getMimeType(){
+        if((null == mFileAbsolutePath) || (mFileAbsolutePath.endsWith(".")) || (!mFileAbsolutePath.contains("."))){
             return null;
         }
 
-        int index = path.lastIndexOf(".");
+        int index = mFileAbsolutePath.lastIndexOf(".");
         if (index != -1) {
-            String extension = path.substring(index + 1).toLowerCase(Locale.US);
+            String extension = mFileAbsolutePath.substring(index + 1).toLowerCase(Locale.US);
             return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
         }
 
