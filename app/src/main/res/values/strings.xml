@@ -111,4 +111,6 @@
     <string name="modify_time">Modified Time</string>
     <string name="path">Path</string>
     <string name="file_exist">File name is exist.Can\'t rename to this</string>
+    <string name="rename_fail">Rename failed</string>
+    <string name="special_tips">File name can\'t include special char</string>
 </resources>

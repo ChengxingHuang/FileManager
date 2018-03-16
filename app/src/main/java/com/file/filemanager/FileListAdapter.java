@@ -14,7 +14,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -23,7 +23,6 @@ import android.widget.Toast;
 import android.widget.PopupMenu;
 
 import com.file.filemanager.Task.DeleteTask;
-import com.file.filemanager.Task.PasteTask;
 
 import java.io.File;
 import java.util.List;
@@ -39,6 +38,9 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
     private int mCheckCount = 0;
     private boolean[] mIsPositionChecked;
+
+    //文件或者文件夹名称不能包含以下特殊字符
+    private static String[] SPECIAL = {"/", "?", "*"};
 
     public FileListAdapter(Context context, List<FileInfo> dataList, ListFragment fragment){
         mContext = context;
@@ -201,6 +203,33 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         LayoutInflater inflater = LayoutInflater.from(mContext);
         View view = inflater.inflate(R.layout.new_folder_dialog, null);
         final EditText nameEdit = (EditText)view.findViewById(R.id.name);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        AlertDialog dialog = builder.create();
+        dialog.setTitle(R.string.rename);
+        dialog.setView(view);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getResources().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                File old = info.getFile();
+                File newFile = new File(info.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
+                if(newFile.exists()){
+                    Toast.makeText(mContext, R.string.file_exist, Toast.LENGTH_SHORT).show();
+                }else{
+                    if(!old.renameTo(newFile))
+                        Toast.makeText(mContext, R.string.rename_fail, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getResources().getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+
+            }
+        });
+        dialog.show(); //这个不能放在监听文字改变事件之后，否则btn会是null???
+
+        final Button btn = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
         nameEdit.setHint(null);
         nameEdit.setText(info.getFileName());
         nameEdit.addTextChangedListener(new TextWatcher() {
@@ -216,38 +245,26 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
             @Override
             public void afterTextChanged(Editable s) {
-                Log.d("huangcx", "" + s.length());
-                // TODO: 2018/3/16 长度为0时，确认按钮灰显
+                boolean includeSpecial = false;
+                //包含特殊字符
+                for(int i = 0; i < SPECIAL.length; i++){
+                    if(s.toString().contains(SPECIAL[i])) {
+                        Toast.makeText(mContext, R.string.special_tips, Toast.LENGTH_SHORT).show();
+                        includeSpecial = true;
+                        break;
+                    }
+                }
+
+                if(0 == s.length() || includeSpecial)
+                    btn.setEnabled(false);
+                else
+                    btn.setEnabled(true);
             }
         });
         if(!info.isFolder())
             nameEdit.setSelection(info.getFileName().lastIndexOf("."));
         else
             nameEdit.setSelection(info.getFileName().length());
-
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-        builder.setTitle(R.string.rename);
-        builder.setView(view);
-        builder.setNegativeButton(android.R.string.cancel, null);
-        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
-            @Override
-            public void onClick(DialogInterface dialog, int which){
-                File old = info.getFile();
-                File newFile = new File(info.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
-                if(newFile.exists()){
-                    Toast.makeText(mContext, R.string.file_exist, Toast.LENGTH_SHORT).show();
-                }else{
-                    old.renameTo(newFile);
-                }
-            }
-        });
-
-        AlertDialog dialog = builder.create();
-        //以下两句用来打开AlertDialog时直接打开软键盘
-        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
-        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        dialog.show();
     }
 
     private void setCheckStatus(FileInfo fileInfo, int position){
