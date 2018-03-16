@@ -7,11 +7,15 @@ import android.net.Uri;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -21,6 +25,7 @@ import android.widget.PopupMenu;
 import com.file.filemanager.Task.DeleteTask;
 import com.file.filemanager.Task.PasteTask;
 
+import java.io.File;
 import java.util.List;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> implements MainActivity.MainActivityCallBack{
@@ -153,6 +158,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                         });
                         break;
                     case R.id.rename:
+                        rename(fileInfo);
                         break;
                     case R.id.favorite:
                         break;
@@ -189,6 +195,59 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             }
         });
         mPopupMenu.show();
+    }
+
+    private void rename(final FileInfo info){
+        LayoutInflater inflater = LayoutInflater.from(mContext);
+        View view = inflater.inflate(R.layout.new_folder_dialog, null);
+        final EditText nameEdit = (EditText)view.findViewById(R.id.name);
+        nameEdit.setHint(null);
+        nameEdit.setText(info.getFileName());
+        nameEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                Log.d("huangcx", "" + s.length());
+                // TODO: 2018/3/16 长度为0时，确认按钮灰显
+            }
+        });
+        if(!info.isFolder())
+            nameEdit.setSelection(info.getFileName().lastIndexOf("."));
+        else
+            nameEdit.setSelection(info.getFileName().length());
+
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        builder.setTitle(R.string.rename);
+        builder.setView(view);
+        builder.setNegativeButton(android.R.string.cancel, null);
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int which){
+                File old = info.getFile();
+                File newFile = new File(info.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
+                if(newFile.exists()){
+                    Toast.makeText(mContext, R.string.file_exist, Toast.LENGTH_SHORT).show();
+                }else{
+                    old.renameTo(newFile);
+                }
+            }
+        });
+
+        AlertDialog dialog = builder.create();
+        //以下两句用来打开AlertDialog时直接打开软键盘
+        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        dialog.show();
     }
 
     private void setCheckStatus(FileInfo fileInfo, int position){

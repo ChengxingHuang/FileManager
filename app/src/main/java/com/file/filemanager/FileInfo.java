@@ -258,6 +258,10 @@ public class FileInfo {
         return mFileName;
     }
 
+    public String getSuffix(){
+        return mFileName.substring(mFileName.lastIndexOf("."), mFileName.length());
+    }
+
     public String getFileSize() {
         return mFileSize;
     }
