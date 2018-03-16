@@ -28,13 +28,13 @@ import java.io.File;
 import java.util.List;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> implements MainActivity.MainActivityCallBack{
-    public static final String TAG = "FileListAdapter";
+    private static final String TAG = "FileListAdapter";
 
     private Context mContext;
     private List<FileInfo> mDataList;
     private LayoutInflater mInflater;
     private ListFragment mListFragment;
-    private PopupMenu mPopupMenu;
+    private MainActivity mMainActivity;
 
     private int mCheckCount = 0;
     private boolean[] mIsPositionChecked;
@@ -48,12 +48,12 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         mInflater = LayoutInflater.from(mContext);
         mListFragment = fragment;
         mIsPositionChecked = null;
+        mMainActivity = (MainActivity) mListFragment.getActivity();
     }
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        MyViewHolder holder = new MyViewHolder(mInflater.inflate(R.layout.file_list_item, parent, false));
-        return holder;
+        return new MyViewHolder(mInflater.inflate(R.layout.file_list_item, parent, false));
     }
 
     @Override
@@ -115,7 +115,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 if(null == mIsPositionChecked){
                     mCheckCount = 0;
                     mIsPositionChecked = new boolean[mDataList.size()];
-                    ((MainActivity) mListFragment.getActivity()).setCallBack(FileListAdapter.this);
+                    mMainActivity.setCallBack(FileListAdapter.this);
                 }
 
                 setCheckStatus(fileInfo, position);
@@ -127,37 +127,21 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     }
 
     private void showPopupMenu(View anchor, final FileInfo fileInfo){
-        mPopupMenu = new PopupMenu(mContext, anchor);
-        mPopupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, mPopupMenu.getMenu());
-        mPopupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+        PopupMenu popupMenu = new PopupMenu(mContext, anchor);
+        popupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 int id = item.getItemId();
                 switch (id){
                     case R.id.copy:
-                        ((MainActivity) mListFragment.getActivity()).setPasteIconVisible(true);
-                        ((MainActivity) mListFragment.getActivity()).setCutMode(false);
-                        ((MainActivity) mListFragment.getActivity()).setSrcPastePath(fileInfo.getFileAbsolutePath());
+                        copy(false, fileInfo);
                         break;
                     case R.id.cut:
-                        ((MainActivity) mListFragment.getActivity()).setPasteIconVisible(true);
-                        ((MainActivity) mListFragment.getActivity()).setCutMode(true);
-                        ((MainActivity) mListFragment.getActivity()).setSrcPastePath(fileInfo.getFileAbsolutePath());
+                        copy(true, fileInfo);
                         break;
                     case R.id.delete:
-                        DeleteTask task = new DeleteTask();
-                        task.execute(fileInfo.getFileAbsolutePath());
-                        task.setHandleDeleteMsg(new DeleteTask.HandlerDeleteMessage() {
-                            @Override
-                            public void deleteFinish(int result) {
-                                if(DeleteTask.ERROR_CODE_DELETE_SUCCESS == result){
-                                    mListFragment.updateCurrentList();
-                                    Toast.makeText(mContext, R.string.delete_success, Toast.LENGTH_SHORT).show();
-                                }else{
-                                    Toast.makeText(mContext, R.string.delete_fail, Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
+                        delete(fileInfo);
                         break;
                     case R.id.rename:
                         rename(fileInfo);
@@ -169,34 +153,35 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                     case R.id.share:
                         break;
                     case R.id.detail:
-                        String fileName = fileInfo.getFileName();
-                        String size = fileInfo.getFileSize();
-                        if(fileInfo.isFolder()){
-                            size = fileInfo.getFolderSizeHuman(fileInfo.getFile()) + "";
-                        }
-                        String absPath = fileInfo.getFileAbsolutePath();
-                        String path = absPath.substring(0, absPath.length() - fileName.length());
-                        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-                        builder.setTitle(R.string.detail);
-                        builder.setMessage(
-                                mContext.getResources().getString(R.string.name) + " : " + fileName + "\n" +
-                                mContext.getResources().getString(R.string.size) + " : " + size + "\n" +
-                                mContext.getResources().getString(R.string.modify_date) + " : " + fileInfo.getFileLastModifiedDate() + "\n" +
-                                mContext.getResources().getString(R.string.modify_time) + " : " + fileInfo.getFileLastModifiedTime() + "\n" +
-                                mContext.getResources().getString(R.string.path) + " : " + path);
-                        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                            }
-                        });
-                        builder.show();
+                        showDetails(fileInfo);
                         break;
                 }
                 return true;
             }
         });
-        mPopupMenu.show();
+        popupMenu.show();
+    }
+
+    private void copy(boolean isCut, final FileInfo fileInfo){
+        mMainActivity.setPasteIconVisible(true);
+        mMainActivity.setCutMode(isCut);
+        mMainActivity.setSrcPastePath(fileInfo.getFileAbsolutePath());
+    }
+
+    private void delete(final FileInfo fileInfo){
+        DeleteTask task = new DeleteTask();
+        task.execute(fileInfo.getFileAbsolutePath());
+        task.setHandleDeleteMsg(new DeleteTask.HandlerDeleteMessage() {
+            @Override
+            public void deleteFinish(int result) {
+                if(DeleteTask.ERROR_CODE_DELETE_SUCCESS == result){
+                    mListFragment.updateCurrentList();
+                    Toast.makeText(mContext, R.string.delete_success, Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(mContext, R.string.delete_fail, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void rename(final FileInfo info){
@@ -218,6 +203,8 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 }else{
                     if(!old.renameTo(newFile))
                         Toast.makeText(mContext, R.string.rename_fail, Toast.LENGTH_SHORT).show();
+                    else
+                        mListFragment.updateCurrentList();
                 }
             }
         });
@@ -247,8 +234,8 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             public void afterTextChanged(Editable s) {
                 boolean includeSpecial = false;
                 //包含特殊字符
-                for(int i = 0; i < SPECIAL.length; i++){
-                    if(s.toString().contains(SPECIAL[i])) {
+                for (String str : SPECIAL) {
+                    if(s.toString().contains(str)) {
                         Toast.makeText(mContext, R.string.special_tips, Toast.LENGTH_SHORT).show();
                         includeSpecial = true;
                         break;
@@ -267,6 +254,31 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             nameEdit.setSelection(info.getFileName().length());
     }
 
+    private void showDetails(final FileInfo fileInfo){
+        String fileName = fileInfo.getFileName();
+        String size = fileInfo.getFileSize();
+        if(fileInfo.isFolder()){
+            size = fileInfo.getFolderSizeHuman(fileInfo.getFile()) + "";
+        }
+        String path = fileInfo.getParentFileAbsolutePath();
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        AlertDialog dialog = builder.create();
+        dialog.setTitle(R.string.detail);
+        dialog.setMessage(
+                mContext.getResources().getString(R.string.name) + " : " + fileName + "\n" +
+                        mContext.getResources().getString(R.string.size) + " : " + size + "\n" +
+                        mContext.getResources().getString(R.string.modify_date) + " : " + fileInfo.getFileLastModifiedDate() + "\n" +
+                        mContext.getResources().getString(R.string.modify_time) + " : " + fileInfo.getFileLastModifiedTime() + "\n" +
+                        mContext.getResources().getString(R.string.path) + " : " + path);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getResources().getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+
     private void setCheckStatus(FileInfo fileInfo, int position){
         if(mIsPositionChecked[position]){
             //取消选中
@@ -275,10 +287,10 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
             mCheckCount--;
             if(0 == mCheckCount){
-                ((MainActivity) mListFragment.getActivity()).finishActionMode();
+                mMainActivity.finishActionMode();
                 mIsPositionChecked = null;
             }else {
-                ((MainActivity) mListFragment.getActivity()).setItemCountView(mCheckCount + "");
+                mMainActivity.setItemCountView(mCheckCount + "");
             }
         }else{
             //选中
@@ -287,16 +299,16 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
             mCheckCount++;
             if(1 == mCheckCount) {
-                ((MainActivity) mListFragment.getActivity()).startActionMode();
+                mMainActivity.startActionMode();
                 mListFragment.setFloatActionButtonVisibility(View.INVISIBLE);
             }
-            ((MainActivity) mListFragment.getActivity()).setItemCountView(mCheckCount + "");
+            mMainActivity.setItemCountView(mCheckCount + "");
         }
 
         if(mCheckCount > 1){
-            ((MainActivity) mListFragment.getActivity()).setRenameAndDetailMenuVisible(false);
+            mMainActivity.setRenameAndDetailMenuVisible(false);
         }else{
-            ((MainActivity) mListFragment.getActivity()).setRenameAndDetailMenuVisible(true);
+            mMainActivity.setRenameAndDetailMenuVisible(true);
         }
 
         mDataList.set(position, fileInfo);
@@ -322,18 +334,18 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         notifyDataSetChanged();
     }
 
-    public static class MyViewHolder extends RecyclerView.ViewHolder {
-        public View mWholeView;
-        public ImageView mFileTypeImage;
-        public TextView mFileNameText;
-        public TextView mFileSizeText;
-        public TextView mLastModifiedDateText;
-        public TextView mLastModifiedTimeText;
-        public ImageView mOptionMenuImage;
+    static class MyViewHolder extends RecyclerView.ViewHolder {
+        View mWholeView;
+        ImageView mFileTypeImage;
+        TextView mFileNameText;
+        TextView mFileSizeText;
+        TextView mLastModifiedDateText;
+        TextView mLastModifiedTimeText;
+        ImageView mOptionMenuImage;
 
-        public MyViewHolder(View view) {
+        MyViewHolder(View view) {
             super(view);
-            mWholeView = (RelativeLayout) view.findViewById(R.id.file_list_item_view);
+            mWholeView = view.findViewById(R.id.file_list_item_view);
             mFileTypeImage = (ImageView) view.findViewById(R.id.file_type_image);
             mFileNameText = (TextView) view.findViewById(R.id.file_name_text);
             mLastModifiedDateText = (TextView) view.findViewById(R.id.last_change_date_text);
