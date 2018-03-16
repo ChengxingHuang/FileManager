@@ -46,7 +46,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        return mContext.getResources().getString(mTabTitles[position]);
+        return mContext.getString(mTabTitles[position]);
     }
 
     public boolean onBackPressed(){

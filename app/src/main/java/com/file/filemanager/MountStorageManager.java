@@ -80,7 +80,7 @@ public class MountStorageManager {
 
         int descriptionId = Utils.getReflectInt(volume, "mDescriptionId");
         if(-1 != descriptionId){
-            description = context.getResources().getString(descriptionId);
+            description = context.getString(descriptionId);
         }else{
             description = Utils.getReflectString(volume, "mDescription");
         }

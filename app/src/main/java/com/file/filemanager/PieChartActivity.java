@@ -105,7 +105,7 @@ public class PieChartActivity extends AppCompatActivity implements OnChartValueS
 
         ArrayList<String> xValues = new ArrayList<String>();
         for (int i = 0; i < count + 1; i++)
-            xValues.add(getResources().getString(mChartParties[i % mChartParties.length]));
+            xValues.add(getString(mChartParties[i % mChartParties.length]));
 
         PieDataSet dataSet = new PieDataSet(yValues1, "");
         dataSet.setSliceSpace(3f);

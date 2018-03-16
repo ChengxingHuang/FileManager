@@ -24,7 +24,7 @@ public class Utils {
         StatFs stat = new StatFs(path);
         long blockSize = stat.getBlockSizeLong();
         long availableBlocks = stat.getAvailableBlocksLong();
-        return context.getResources().getString(R.string.available)
+        return context.getString(R.string.available)
                 + Formatter.formatFileSize(context, blockSize * availableBlocks);
     }
 
@@ -35,7 +35,7 @@ public class Utils {
         StatFs stat = new StatFs(path);
         long blockSize = stat.getBlockSizeLong();
         long totalBlocks = stat.getBlockCountLong();
-        return context.getResources().getString(R.string.total)
+        return context.getString(R.string.total)
                 + Formatter.formatFileSize(context, blockSize * totalBlocks);
     }
 

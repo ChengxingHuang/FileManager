@@ -81,8 +81,8 @@ public class AboutActivity extends AppCompatActivity {
     private void initBean(){
         for(int i = 0; i < mAboutTitleResource.length; i++) {
             HashMap<String, Object> map = new HashMap<>();
-            map.put("title", getResources().getString(mAboutTitleResource[i][0]));
-            map.put("subtitle", getResources().getString(mAboutTitleResource[i][1]));
+            map.put("title", getString(mAboutTitleResource[i][0]));
+            map.put("subtitle", getString(mAboutTitleResource[i][1]));
             mBeanData.add(map);
         }
     }

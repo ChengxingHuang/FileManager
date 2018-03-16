@@ -196,7 +196,7 @@ public class CategoryFragment extends Fragment implements View.OnClickListener {
                 for(int i = 0; i < CATEGORY_GRID_COUNT; i++){
                     Map<String, Object> map = new HashMap<>();
                     map.put(KEY_ICON, mCategoryIcon[i]);
-                    map.put(KEY_TITLE, getActivity().getResources().getString(mCategoryTitle[i]));
+                    map.put(KEY_TITLE, getActivity().getString(mCategoryTitle[i]));
                     map.put(KEY_COUNT, null == mCategoryListManager.get(i) ? 0 : mCategoryListManager.get(i).size());
 
                     mCategoryList.add(map);

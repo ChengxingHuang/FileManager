@@ -298,7 +298,7 @@ public class ListFragment extends Fragment {
             public void showEmptyPath() {
                 mRecyclerView.setVisibility(View.GONE);
                 mEmptyText.setVisibility(View.VISIBLE);
-                mEmptyText.setText(mCurPath + " " + mContext.getResources().getString(R.string.is_empty));
+                mEmptyText.setText(mCurPath + " " + mContext.getString(R.string.is_empty));
 
                 LastPosition pos = new LastPosition();
                 pos.mLastPosition = -1;

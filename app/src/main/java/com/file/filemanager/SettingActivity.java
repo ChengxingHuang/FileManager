@@ -64,7 +64,7 @@ public class SettingActivity extends AppCompatActivity {
     private void initBean(){
         for(int i = 0; i < mSettingTitleResource.length; i++) {
             HashMap<String, Object> map = new HashMap<>();
-            map.put("title", getResources().getString(mSettingTitleResource[i][0]));
+            map.put("title", getString(mSettingTitleResource[i][0]));
 
             if(R.string.directory_sort_mode == mSettingTitleResource[i][0]){
                 int directorSortModeValue = PreferenceUtils.getDirectorSortModeValue(SettingActivity.this);
@@ -75,7 +75,7 @@ public class SettingActivity extends AppCompatActivity {
                 String title = getResources().getStringArray(R.array.sort_by)[sortBy];
                 map.put("subTitle", title);
             }else {
-                map.put("subTitle", getResources().getString(mSettingTitleResource[i][1]));
+                map.put("subTitle", getString(mSettingTitleResource[i][1]));
             }
 
             if (R.string.ascending == mSettingTitleResource[i][0]

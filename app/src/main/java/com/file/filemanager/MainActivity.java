@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
         mSortMenuItem = mNormalMenu.findItem(R.id.action_sort);
 
         mSearchView = (SearchView) MenuItemCompat.getActionView(mSearchMenuItem);
-        mSearchView.setQueryHint(getResources().getString(R.string.search_files));
+        mSearchView.setQueryHint(getString(R.string.search_files));
         mSearchView.onActionViewCollapsed();
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -271,7 +271,7 @@ public class MainActivity extends AppCompatActivity {
         mCopyProcessDialog.setTitle(R.string.copying);
         mCopyProcessDialog.setMessage(fileName);
         mCopyProcessDialog.setMax(100);
-        mCopyProcessDialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getResources().getString(android.R.string.cancel),
+        mCopyProcessDialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel),
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -285,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
     private void showCopyConfirmDialog(final String[] params, final String fileName){
         mDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
         mDialogBuilder.setTitle(R.string.paste);
-        mDialogBuilder.setMessage(fileName + " " + getResources().getString(R.string.is_exist));
+        mDialogBuilder.setMessage(fileName + " " + getString(R.string.is_exist));
         mDialogBuilder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
