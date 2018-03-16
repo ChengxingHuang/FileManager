@@ -145,8 +145,6 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                         break;
                     case R.id.favorite:
                         break;
-                    case R.id.encryption:
-                        break;
                     case R.id.share:
                         share(fileInfo);
                         break;

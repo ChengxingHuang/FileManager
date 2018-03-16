@@ -16,9 +16,6 @@
         android:id="@+id/favorite"
         android:title="@string/favorite"/>
     <item
-        android:id="@+id/encryption"
-        android:title="@string/encryption"/>
-    <item
         android:id="@+id/share"
         android:title="@string/share"/>
     <item
