@@ -17,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
@@ -30,7 +29,6 @@ import java.util.List;
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> implements MainActivity.MainActivityCallBack{
     private static final String TAG = "FileListAdapter";
 
-    private Context mContext;
     private List<FileInfo> mDataList;
     private LayoutInflater mInflater;
     private ListFragment mListFragment;
@@ -43,12 +41,11 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     private static String[] SPECIAL = {"/", "?", "*"};
 
     public FileListAdapter(Context context, List<FileInfo> dataList, ListFragment fragment){
-        mContext = context;
         mDataList = dataList;
-        mInflater = LayoutInflater.from(mContext);
+        mInflater = LayoutInflater.from(context);
         mListFragment = fragment;
         mIsPositionChecked = null;
-        mMainActivity = (MainActivity) mListFragment.getActivity();
+        mMainActivity = (MainActivity) context;
     }
 
     @Override
@@ -97,9 +94,9 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             intent.setAction(Intent.ACTION_VIEW);
                             intent.setDataAndType(Uri.fromFile(fileInfo.getFile()), mimeType);
-                            mContext.startActivity(intent);
+                            mMainActivity.startActivity(intent);
                         } else {
-                            Toast.makeText(mContext, mContext.getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(mMainActivity, mMainActivity.getString(R.string.unknown_type), Toast.LENGTH_SHORT).show();
                         }
                     }
                 }
@@ -127,7 +124,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     }
 
     private void showPopupMenu(View anchor, final FileInfo fileInfo){
-        PopupMenu popupMenu = new PopupMenu(mContext, anchor);
+        PopupMenu popupMenu = new PopupMenu(mMainActivity, anchor);
         popupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
@@ -177,39 +174,39 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             public void deleteFinish(int result) {
                 if(DeleteTask.ERROR_CODE_DELETE_SUCCESS == result){
                     mListFragment.updateCurrentList();
-                    Toast.makeText(mContext, R.string.delete_success, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mMainActivity, R.string.delete_success, Toast.LENGTH_SHORT).show();
                 }else{
-                    Toast.makeText(mContext, R.string.delete_fail, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mMainActivity, R.string.delete_fail, Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
     private void rename(final FileInfo fileInfo){
-        LayoutInflater inflater = LayoutInflater.from(mContext);
+        LayoutInflater inflater = LayoutInflater.from(mMainActivity);
         View view = inflater.inflate(R.layout.new_folder_dialog, null);
         final EditText nameEdit = (EditText)view.findViewById(R.id.name);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mMainActivity, R.style.AlertDialogCustom));
         AlertDialog dialog = builder.create();
         dialog.setTitle(R.string.rename);
         dialog.setView(view);
-        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mMainActivity.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 File old = fileInfo.getFile();
                 File newFile = new File(fileInfo.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
                 if(newFile.exists()){
-                    Toast.makeText(mContext, R.string.file_exist, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mMainActivity, R.string.file_exist, Toast.LENGTH_SHORT).show();
                 }else{
                     if(!old.renameTo(newFile))
-                        Toast.makeText(mContext, R.string.rename_fail, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mMainActivity, R.string.rename_fail, Toast.LENGTH_SHORT).show();
                     else
                         mListFragment.updateCurrentList();
                 }
             }
         });
-        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mMainActivity.getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
@@ -237,7 +234,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                 //包含特殊字符
                 for (String str : SPECIAL) {
                     if(s.toString().contains(str)) {
-                        Toast.makeText(mContext, R.string.special_tips, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mMainActivity, R.string.special_tips, Toast.LENGTH_SHORT).show();
                         includeSpecial = true;
                         break;
                     }
@@ -261,7 +258,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         intent.setType(fileInfo.getMimeType());
         Uri uri = Uri.fromFile(fileInfo.getFile());
         intent.putExtra(Intent.EXTRA_STREAM, uri);
-        mContext.startActivity(Intent.createChooser(intent, mContext.getString(R.string.share)));
+        mMainActivity.startActivity(Intent.createChooser(intent, mMainActivity.getString(R.string.share)));
     }
 
     private void showDetails(final FileInfo fileInfo){
@@ -271,16 +268,16 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             size = fileInfo.getFolderSizeHuman(fileInfo.getFile()) + "";
         }
         String path = fileInfo.getParentFileAbsolutePath();
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mMainActivity, R.style.AlertDialogCustom));
         AlertDialog dialog = builder.create();
         dialog.setTitle(R.string.detail);
         dialog.setMessage(
-                mContext.getString(R.string.name) + " : " + fileName + "\n" +
-                        mContext.getString(R.string.size) + " : " + size + "\n" +
-                        mContext.getString(R.string.modify_date) + " : " + fileInfo.getFileLastModifiedDate() + "\n" +
-                        mContext.getString(R.string.modify_time) + " : " + fileInfo.getFileLastModifiedTime() + "\n" +
-                        mContext.getString(R.string.path) + " : " + path);
-        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mContext.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                mMainActivity.getString(R.string.name) + " : " + fileName + "\n" +
+                        mMainActivity.getString(R.string.size) + " : " + size + "\n" +
+                        mMainActivity.getString(R.string.modify_date) + " : " + fileInfo.getFileLastModifiedDate() + "\n" +
+                        mMainActivity.getString(R.string.modify_time) + " : " + fileInfo.getFileLastModifiedTime() + "\n" +
+                        mMainActivity.getString(R.string.path) + " : " + path);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mMainActivity.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
