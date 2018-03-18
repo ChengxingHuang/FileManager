@@ -36,6 +36,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
     private int mCheckCount = 0;
     private boolean[] mIsPositionChecked;
+    private boolean mIsCurPathInFavorite;
 
     //文件或者文件夹名称不能包含以下特殊字符
     private static String[] SPECIAL = {"/", "?", "*"};
@@ -126,6 +127,10 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     private void showPopupMenu(View anchor, final FileInfo fileInfo){
         PopupMenu popupMenu = new PopupMenu(mMainActivity, anchor);
         popupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, popupMenu.getMenu());
+        if(mIsCurPathInFavorite = mMainActivity.isPathInFavorite(fileInfo.getFileAbsolutePath())) {
+            MenuItem favorite = popupMenu.getMenu().findItem(R.id.favorite);
+            favorite.setTitle(R.string.cancel_favorite);
+        }
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -144,6 +149,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                         rename(fileInfo);
                         break;
                     case R.id.favorite:
+                        favorite(fileInfo);
                         break;
                     case R.id.share:
                         share(fileInfo);
@@ -248,6 +254,14 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             nameEdit.setSelection(fileInfo.getFileName().lastIndexOf("."));
         else
             nameEdit.setSelection(fileInfo.getFileName().length());
+    }
+
+    private void favorite(final FileInfo fileInfo){
+        if(mIsCurPathInFavorite){
+            mMainActivity.deleteFromFavorite(fileInfo.getFileAbsolutePath());
+        }else{
+            mMainActivity.addToFavorite(fileInfo.getFileAbsolutePath());
+        }
     }
 
     private void share(final FileInfo fileInfo){

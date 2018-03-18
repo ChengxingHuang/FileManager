@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.file.filemanager.FileInfo;
+import com.file.filemanager.MainActivity;
 import com.file.filemanager.MountStorageManager;
 import com.file.filemanager.PreferenceUtils;
 import com.file.filemanager.Utils;
@@ -38,7 +39,7 @@ public class AssortTask extends AsyncTask<List, Void, Void> {
     public static final String PATH_WECHAT = "tencent/MicroMsg";
     public static final String PATH_QQ = "tencent/QQfile_recv";
 
-    private Context mContext;
+    private MainActivity mMainActivity;
     private ArrayList<FileInfo> mQQList = new ArrayList<FileInfo>();;
     private ArrayList<FileInfo> mWechatList = new ArrayList<FileInfo>();;
     private AssortFinish mAssortFinish;
@@ -48,7 +49,7 @@ public class AssortTask extends AsyncTask<List, Void, Void> {
     }
 
     public AssortTask(Context context){
-        mContext = context;
+        mMainActivity = (MainActivity)context;
     }
 
     @Override
@@ -59,15 +60,14 @@ public class AssortTask extends AsyncTask<List, Void, Void> {
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ, false);
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_WECHAT, true);
         }
-        params[0].add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(mContext, mPicture));
-        params[0].add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(mContext, mPicture));
-        params[0].add(CATEGORY_MUSIC, Utils.getSpecificTypeOfFile(mContext, mMusic));
-        params[0].add(CATEGORY_VIDEO, Utils.getSpecificTypeOfFile(mContext, mVideo));
-        params[0].add(CATEGORY_DOCUMENT, Utils.getSpecificTypeOfFile(mContext, mDocument));
-        params[0].add(CATEGORY_APK, Utils.getSpecificTypeOfFile(mContext, mApk));
-        params[0].add(CATEGORY_ZIP, Utils.getSpecificTypeOfFile(mContext, mArchive));
-        // TODO: 2017/12/25 添加喜爱列表
-        params[0].add(CATEGORY_FAVORITE, null);
+        params[0].add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(mMainActivity, mPicture));
+        params[0].add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(mMainActivity, mPicture));
+        params[0].add(CATEGORY_MUSIC, Utils.getSpecificTypeOfFile(mMainActivity, mMusic));
+        params[0].add(CATEGORY_VIDEO, Utils.getSpecificTypeOfFile(mMainActivity, mVideo));
+        params[0].add(CATEGORY_DOCUMENT, Utils.getSpecificTypeOfFile(mMainActivity, mDocument));
+        params[0].add(CATEGORY_APK, Utils.getSpecificTypeOfFile(mMainActivity, mApk));
+        params[0].add(CATEGORY_ZIP, Utils.getSpecificTypeOfFile(mMainActivity, mArchive));
+        params[0].add(CATEGORY_FAVORITE, mMainActivity.getFavoriteList());
         params[0].add(CATEGORY_QQ, mQQList);
         params[0].add(CATEGORY_WECHAT, mWechatList);
 
@@ -91,13 +91,13 @@ public class AssortTask extends AsyncTask<List, Void, Void> {
                     if (fileArray[i].isDirectory()) {
                         getTencentFiles(fileArray[i].toString(), isWeChat);
                     } else {
-                        FileInfo info = new FileInfo(mContext, fileArray[i].toString());
+                        FileInfo info = new FileInfo(mMainActivity, fileArray[i].toString());
                         if(isWeChat) {
-                            if(!PreferenceUtils.getShowHideFileValue(mContext) && info.isHideFileType())
+                            if(!PreferenceUtils.getShowHideFileValue(mMainActivity) && info.isHideFileType())
                                 continue;
                             mWechatList.add(info);
                         }else{
-                            if(!PreferenceUtils.getShowHideFileValue(mContext) && info.isHideFileType())
+                            if(!PreferenceUtils.getShowHideFileValue(mMainActivity) && info.isHideFileType())
                                 continue;
                             mQQList.add(info);
                         }

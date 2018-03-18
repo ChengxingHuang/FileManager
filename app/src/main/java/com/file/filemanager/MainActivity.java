@@ -2,10 +2,14 @@ package com.file.filemanager;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
@@ -67,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
     private String mCopySrcPath;
     private ProgressDialog mCopyProcessDialog;
     private boolean mIsCut;
+
+    private SQLiteDatabase mFavoriteDB;
+    private static final String FAVORITE_TABLE = "favorite";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +139,9 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        FavoriteSQLOpenHelper sqlOpenHelper = new FavoriteSQLOpenHelper(this, "favorite.db", null, 0x01);
+        mFavoriteDB = sqlOpenHelper.getWritableDatabase();
     }
 
     @Override
@@ -441,4 +451,62 @@ public class MainActivity extends AppCompatActivity {
             mCallBack.cleanCheck();
         }
     };
+
+    static class FavoriteSQLOpenHelper extends SQLiteOpenHelper {
+
+        FavoriteSQLOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+            super(context, name, factory, version);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            db.execSQL("CREATE TABLE favorite(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "path TEXT NOT NULL, " +
+                    "status INTEGER, " +
+                    "time TEXT)");
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
+    }
+
+    public void addToFavorite(String path){
+        ContentValues values = new ContentValues();
+        values.put("path", path);
+        values.put("status", 1);
+        values.put("time", System.currentTimeMillis());
+        mFavoriteDB.insert(FAVORITE_TABLE, null, values);
+    }
+
+    public void deleteFromFavorite(String path){
+        mFavoriteDB.delete(FAVORITE_TABLE, "path=?", new String[]{path});
+    }
+
+    public boolean isPathInFavorite(String path){
+        boolean isIn = false;
+        Cursor cursor = mFavoriteDB.query(FAVORITE_TABLE, new String[]{"path"}, null, null, null, null, null);
+        while(cursor.moveToNext()){
+            String curPath = cursor.getString(cursor.getColumnIndex("path"));
+            if(path.equals(curPath)){
+                isIn = true;
+                break;
+            }
+        }
+        cursor.close();
+
+        return isIn;
+    }
+
+    public ArrayList<FileInfo> getFavoriteList(){
+        ArrayList<FileInfo> favoriteList = new ArrayList<FileInfo>();
+        Cursor cursor = mFavoriteDB.query(FAVORITE_TABLE, new String[]{"path"}, null, null, null, null, null);
+        while(cursor.moveToNext()){
+            String path = cursor.getString(cursor.getColumnIndex("path"));
+            favoriteList.add(new FileInfo(this, path));
+        }
+        cursor.close();
+        return favoriteList;
+    }
 }
