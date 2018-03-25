@@ -1,6 +1,5 @@
 package com.file.filemanager;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -12,7 +11,6 @@ import android.webkit.MimeTypeMap;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Locale;
 
 /**
@@ -22,16 +20,15 @@ import java.util.Locale;
 public class FileInfo {
     public static final String TAG = "FileInfo";
 
-    public static final String UNIT_B = "B";
-    public static final String UNIT_KB = "KB";
-    public static final String UNIT_MB = "MB";
-    public static final String UNIT_GB = "GB";
-    public static final String UNIT_TB = "TB";
+    private static final String UNIT_B = "B";
+    private static final String UNIT_KB = "KB";
+    private static final String UNIT_MB = "MB";
+    private static final String UNIT_GB = "GB";
+    private static final String UNIT_TB = "TB";
 
     private static final int UNIT_INTERVAL = 1024;
     private static final double ROUNDING_OFF = 0.005;
     private static final int DECIMAL_NUMBER = 100;
-    private static final HashMap<String, Integer> sCustomDrawableIdsMap = new HashMap<String, Integer>();
 
     private Context mContext;
     private File mFile;
@@ -59,8 +56,8 @@ public class FileInfo {
                 mFileSize = sizeToHumanString(mFile.length());
                 String mimeType = getMimeType();
 
-                if(sCustomDrawableIdsMap.containsKey(mimeType)){
-                    mFileTypeImage = mContext.getResources().getDrawable(sCustomDrawableIdsMap.get(mimeType), null);
+                if(Utils.getRegisterMimeTypeMap().containsKey(mimeType)){
+                    mFileTypeImage = mContext.getResources().getDrawable(Utils.getRegisterMimeTypeMap().get(mimeType), null);
                 }else if("application/vnd.android.package-archive".equals(mimeType)){
                     // 解析APK，获得APK图标
                     mFileTypeImage = getAPKIcon(mFileAbsolutePath);
@@ -73,140 +70,6 @@ public class FileInfo {
             mFileLastModifiedDate = getLastModifiedDate(mFile);
             mFileLastModifiedTime = getLastModifiedTime(mFile);
             mIsChecked = false;
-        }
-    }
-
-    // TODO: 2017/10/12   文件的MIME类型对应的图标，如果需要添加，添加在这里即可
-    public static void init(){
-        // Audio:flac/mp3/mid/ogg/mp4a/wav/wma
-        registerMimeType(R.drawable.file_type_audio,
-                "application/x-flac",
-                "audio/mpeg",
-                "audio/midi",
-                "audio/ogg",
-                "audio/mp4",
-                "audio/wav",
-                "audio/x-ms-wma");
-
-        // Image:bmp/jpg/jpeg/gif/png/tif/tiff/tga/psd
-        registerMimeType(R.drawable.file_type_image,
-                "image/x-ms-bmp",
-                "image/jpeg",
-                "image/gif",
-                "image/png",
-                "image/tiff",
-                "image/x-targa",
-                "image/vnd.adobe.photoshop");
-
-        // Video:avi/dv/mp4/mpeg/mpg/mov/wm/flv/mkv
-        registerMimeType(R.drawable.file_type_video,
-                "video/x-msvideo",
-                "video/x-dv",
-                "video/mp4",
-                "video/mpeg",
-                "video/quicktime",
-                "video/x-ms-wmv",
-                "video/x-flv",
-                "video/x-matroska");
-
-        // Text:txt
-        registerMimeType(R.drawable.file_type_txt, "text/plain");
-
-        // Source code
-        registerMimeType(R.drawable.file_type_codes,
-                "application/rdf+xml",
-                "application/rss+xml",
-                "application/x-object",
-                "application/xhtml+xml",
-                "text/css",
-                "text/html",
-                "text/xml",
-                "text/x-c++hdr",
-                "text/x-c++src",
-                "text/x-chdr",
-                "text/x-csrc",
-                "text/x-dsrc",
-                "text/x-csh",
-                "text/x-haskell",
-                "text/x-java",
-                "text/x-literate-haskell",
-                "text/x-pascal",
-                "text/x-tcl",
-                "text/x-tex",
-                "application/x-latex",
-                "application/x-texinfo",
-                "application/atom+xml",
-                "application/ecmascript",
-                "application/json",
-                "application/javascript",
-                "application/xml",
-                "text/javascript",
-                "application/x-javascript");
-
-        // Compressed:gz/tgz/bz/bz2/tbz/zip/rar/tar/7z
-        registerMimeType(R.drawable.file_type_zip,
-                "application/x-gzip",
-                "application/x-bzip2",
-                "application/zip",
-                "application/x-rar",
-                "application/x-tar",
-                "application/x-7z-compressed");
-
-        // Contact
-        registerMimeType(R.drawable.file_type_vcf,
-                "text/x-vcard",
-                "text/vcard");
-
-        // PDF
-        registerMimeType(R.drawable.file_type_pdf, "application/pdf");
-
-        // PPT
-        registerMimeType(R.drawable.file_type_ppt,
-                "application/vnd.ms-powerpoint",
-                "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                "application/vnd.openxmlformats-officedocument.presentationml.template",
-                "application/vnd.openxmlformats-officedocument.presentationml.slideshow",
-                "application/vnd.stardivision.impress",
-                "application/vnd.sun.xml.impress",
-                "application/vnd.sun.xml.impress.template",
-                "application/x-kpresenter",
-                "application/vnd.oasis.opendocument.presentation");
-
-        // Excel
-        registerMimeType(R.drawable.file_type_ppt,
-                "application/vnd.oasis.opendocument.spreadsheet",
-                "application/vnd.oasis.opendocument.spreadsheet-template",
-                "application/vnd.ms-excel",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
-                "application/vnd.stardivision.calc",
-                "application/vnd.sun.xml.calc",
-                "application/vnd.sun.xml.calc.template",
-                "application/x-kspread",
-                "text/comma-separated-values");
-
-        // Word
-        registerMimeType(R.drawable.file_type_word,
-                "application/msword",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
-                "application/vnd.oasis.opendocument.text",
-                "application/vnd.oasis.opendocument.text-master",
-                "application/vnd.oasis.opendocument.text-template",
-                "application/vnd.oasis.opendocument.text-web",
-                "application/vnd.stardivision.writer",
-                "application/vnd.stardivision.writer-global",
-                "application/vnd.sun.xml.writer",
-                "application/vnd.sun.xml.writer.global",
-                "application/vnd.sun.xml.writer.template",
-                "application/x-abiword",
-                "application/x-kword",
-                "text/markdown");
-    }
-
-    private static void registerMimeType(int resId, String... mimeTypes) {
-        for (String type : mimeTypes) {
-            sCustomDrawableIdsMap.put(type, resId);
         }
     }
 
@@ -231,11 +94,7 @@ public class FileInfo {
 
     // 是否为隐藏文件
     public boolean isHideFileType(){
-        if(mFileName.startsWith(".")){
-            return true;
-        }
-
-        return false;
+        return mFileName.startsWith(".");
     }
 
     public Drawable getFileTypeImage() {
@@ -384,7 +243,7 @@ public class FileInfo {
      */
     private String getLastModifiedDate(File file){
         long lastChangeTime = file.lastModified();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         return dateFormat.format(lastChangeTime);
     }
 
@@ -393,7 +252,7 @@ public class FileInfo {
      */
     private String getLastModifiedTime(File file){
         long lastChangeTime = file.lastModified();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss", Locale.US);
         return dateFormat.format(lastChangeTime);
     }
 

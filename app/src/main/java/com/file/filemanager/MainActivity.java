@@ -30,7 +30,6 @@ import android.support.v7.view.ActionMode;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -46,36 +45,29 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private DrawerLayout mDrawerLayout;
-    private MyFragmentPagerAdapter mAdapter;
     public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
     public static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0x02;
+    private static final String FAVORITE_TABLE = "favorite";
 
+    private DrawerLayout mDrawerLayout;
     private ActionMode mActionMode;
     private TextView mItemCountView;
-    private View mActionModeView;
     private Menu mClickMenu;
-    private Menu mNormalMenu;
-    private MainActivityCallBack mCallBack;
-    private Context mContext;
     private FloatingActionButton mFloatingActionButton;
-
     private MenuItem mPasteMenuItem;
-    private MenuItem mSearchMenuItem;
-    private MenuItem mHomeMenuItem;
-    private MenuItem mSortMenuItem;
     private SearchView mSearchView;
-    AlertDialog.Builder mDialogBuilder;
+    private AlertDialog.Builder mDialogBuilder;
+    private ProgressDialog mCopyProcessDialog;
 
+    private MyFragmentPagerAdapter mAdapter;
+    private MainActivityCallBack mCallBack;
+    private SQLiteDatabase mFavoriteDB;
+    private Context mContext;
     private SearchTask mSearchTask;
     private PasteTask mPasteTask;
 
     private String mCopySrcPath;
-    private ProgressDialog mCopyProcessDialog;
     private boolean mIsCut;
-
-    private SQLiteDatabase mFavoriteDB;
-    private static final String FAVORITE_TABLE = "favorite";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,26 +78,15 @@ public class MainActivity extends AppCompatActivity {
 
         MountStorageManager storageManager = MountStorageManager.getInstance();
         storageManager.init(this);
+        Utils.mimeTypeInit();
+        FavoriteSQLOpenHelper sqlOpenHelper = new FavoriteSQLOpenHelper(this, "favorite.db", null, 0x01);
+        mFavoriteDB = sqlOpenHelper.getWritableDatabase();
 
-        FileInfo.init();
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
-            }
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
-            }
-        }
+        requestPermission();
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
 
-        // TooBar 左边按钮拉出抽屉
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_main);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, mDrawerLayout, toolbar, 0, 0);
         mDrawerLayout.addDrawerListener(toggle);
@@ -143,21 +124,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mFloatingActionButton = (FloatingActionButton)findViewById(R.id.floatingActionButton);
-
-        FavoriteSQLOpenHelper sqlOpenHelper = new FavoriteSQLOpenHelper(this, "favorite.db", null, 0x01);
-        mFavoriteDB = sqlOpenHelper.getWritableDatabase();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.toolbar_normal_menu_option, menu);
-        mNormalMenu = menu;
-        mPasteMenuItem = mNormalMenu.findItem(R.id.action_paste);
-        mSearchMenuItem = mNormalMenu.findItem(R.id.action_search);
-        mHomeMenuItem = mNormalMenu.findItem(R.id.action_home);
-        mSortMenuItem = mNormalMenu.findItem(R.id.action_sort);
 
-        mSearchView = (SearchView) MenuItemCompat.getActionView(mSearchMenuItem);
+        MenuItem searchMenuItem = menu.findItem(R.id.action_search);
+        mPasteMenuItem = menu.findItem(R.id.action_paste);
+
+        mSearchView = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
         mSearchView.setQueryHint(getString(R.string.search_files));
         mSearchView.onActionViewCollapsed();
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -192,33 +168,15 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
-        //按了返回键，只是先让软键盘消失
-//        mSearchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-//            @Override
-//            public void onFocusChange(View v, boolean hasFocus) {
-//                if(!hasFocus) {
-//                    mSearchView.onActionViewCollapsed();
-//                }
-//            }
-//        });
-        //关闭SearchView监听
-//        mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
-//            @Override
-//            public boolean onClose() {
-//                if(null == mAdapter.getCurPath() && null == mAdapter.getCurCategoryList())
-//                    mAdapter.onBackPressed();
-//                return false;
-//            }
-//        });
 
-        mNormalMenu.findItem(R.id.sort_by).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        menu.findItem(R.id.sort_by).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 showSortByDialog();
                 return true;
             }
         });
-        mNormalMenu.findItem(R.id.directory_sort_mode).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+        menu.findItem(R.id.directory_sort_mode).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 showDirectorySortModeDialog();
@@ -249,6 +207,168 @@ public class MainActivity extends AppCompatActivity {
         });
 
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE
+                || requestCode == PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
+    public void onBackPressed() {
+        boolean needBack = true;
+
+        //返回键关闭SearchView
+        if (!mSearchView.isIconified()) {
+            mSearchView.onActionViewCollapsed();
+            needBack = false;
+        }
+
+        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+            mDrawerLayout.closeDrawer(GravityCompat.START);
+            return;
+        } else if(mAdapter.onBackPressed()){
+            return;
+        }
+
+        if(needBack) {
+            super.onBackPressed();
+        }
+    }
+
+    public void addToFavorite(String path){
+        ContentValues values = new ContentValues();
+        values.put("path", path);
+        values.put("status", 1);
+        values.put("time", System.currentTimeMillis());
+        mFavoriteDB.insert(FAVORITE_TABLE, null, values);
+    }
+
+    public void deleteFromFavorite(String path){
+        mFavoriteDB.delete(FAVORITE_TABLE, "path=?", new String[]{path});
+    }
+
+    public boolean isPathInFavorite(String path){
+        boolean isIn = false;
+        Cursor cursor = mFavoriteDB.query(FAVORITE_TABLE, new String[]{"path"}, null, null, null, null, null);
+        while(cursor.moveToNext()){
+            String curPath = cursor.getString(cursor.getColumnIndex("path"));
+            if(path.equals(curPath)){
+                isIn = true;
+                break;
+            }
+        }
+        cursor.close();
+
+        return isIn;
+    }
+
+    public ArrayList<FileInfo> getFavoriteList(){
+        ArrayList<FileInfo> favoriteList = new ArrayList<>();
+        Cursor cursor = mFavoriteDB.query(FAVORITE_TABLE, new String[]{"path"}, null, null, null, null, null);
+        while(cursor.moveToNext()){
+            String path = cursor.getString(cursor.getColumnIndex("path"));
+            favoriteList.add(new FileInfo(this, path));
+        }
+        cursor.close();
+        return favoriteList;
+    }
+
+    public void startActionMode(){
+        mActionMode = startSupportActionMode(mActionModeCallback);
+    }
+
+    public void finishActionMode(){
+        mActionMode.finish();
+    }
+
+    public void setPasteIconVisible(boolean visible){
+        mPasteMenuItem.setVisible(visible);
+    }
+
+    public void setSrcPastePath(String srcPath){
+        mCopySrcPath = srcPath;
+    }
+
+    public void setCutMode(boolean isCut){
+        mIsCut = isCut;
+    }
+
+    public void setRenameAndDetailMenuVisible(boolean visible){
+        mClickMenu.findItem(R.id.detail).setVisible(visible);
+        mClickMenu.findItem(R.id.rename).setVisible(visible);
+    }
+
+    public void setItemCountView(String count){
+        if(null != mItemCountView){
+            mItemCountView.setText(count);
+        }
+    }
+
+    public FloatingActionButton getFab(){
+        return mFloatingActionButton;
+    }
+
+    public void setCallBack(MainActivityCallBack callBack){
+        mCallBack = callBack;
+    }
+
+    public interface MainActivityCallBack{
+        void cleanCheck();
+    }
+
+    public ActionMode.Callback mActionModeCallback = new ActionMode.Callback(){
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            View actionModeView = getLayoutInflater().inflate(R.layout.action_mode, null);
+            mode.setCustomView(actionModeView);
+
+            mItemCountView = (TextView) actionModeView.findViewById(R.id.item_count);
+
+            inflater.inflate(R.menu.toolbar_click_menu_option, menu);
+            mClickMenu = menu;
+
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return true;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            mCallBack.cleanCheck();
+        }
+    };
+
+    private void requestPermission(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+            }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
+            }
+        }
     }
 
     private void startPaste(String[] params, final String fileName){
@@ -351,115 +471,6 @@ public class MainActivity extends AppCompatActivity {
         mDialogBuilder.show();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE
-                || requestCode == PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE) {
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
-            }
-            return;
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
-    @Override
-    public void onBackPressed() {
-        boolean needBack = true;
-
-        //返回键关闭SearchView
-        if (!mSearchView.isIconified()) {
-            mSearchView.onActionViewCollapsed();
-            needBack = false;
-        }
-
-        if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mDrawerLayout.closeDrawer(GravityCompat.START);
-            return;
-        } else if(mAdapter.onBackPressed()){
-            return;
-        }
-
-        if(needBack) {
-            super.onBackPressed();
-        }
-    }
-
-    public void startActionMode(){
-        mActionMode = startSupportActionMode(mActionModeCallback);
-    }
-
-    public void finishActionMode(){
-        mActionMode.finish();
-    }
-
-    public void setPasteIconVisible(boolean visible){
-        mPasteMenuItem.setVisible(visible);
-    }
-
-    public void setSrcPastePath(String srcPath){
-        mCopySrcPath = srcPath;
-    }
-
-    public void setCutMode(boolean isCut){
-        mIsCut = isCut;
-    }
-
-    public void setRenameAndDetailMenuVisible(boolean visible){
-        mClickMenu.findItem(R.id.detail).setVisible(visible);
-        mClickMenu.findItem(R.id.rename).setVisible(visible);
-    }
-
-    public void setItemCountView(String count){
-        if(null != mItemCountView){
-            mItemCountView.setText(count);
-        }
-    }
-
-    public FloatingActionButton getFab(){
-        return mFloatingActionButton;
-    }
-
-    public void setCallBack(MainActivityCallBack callBack){
-        mCallBack = callBack;
-    }
-
-    public interface MainActivityCallBack{
-        void cleanCheck();
-    }
-
-    public ActionMode.Callback mActionModeCallback = new ActionMode.Callback(){
-
-        @Override
-        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-            MenuInflater inflater = mode.getMenuInflater();
-            mActionModeView = getLayoutInflater().inflate(R.layout.action_mode, null);
-            mode.setCustomView(mActionModeView);
-
-            mItemCountView = (TextView) mActionModeView.findViewById(R.id.item_count);
-
-            inflater.inflate(R.menu.toolbar_click_menu_option, menu);
-            mClickMenu = menu;
-
-            return true;
-        }
-
-        @Override
-        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-            return true;
-        }
-
-        @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            return false;
-        }
-
-        @Override
-        public void onDestroyActionMode(ActionMode mode) {
-            mCallBack.cleanCheck();
-        }
-    };
-
     static class FavoriteSQLOpenHelper extends SQLiteOpenHelper {
 
         FavoriteSQLOpenHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
@@ -478,43 +489,5 @@ public class MainActivity extends AppCompatActivity {
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
         }
-    }
-
-    public void addToFavorite(String path){
-        ContentValues values = new ContentValues();
-        values.put("path", path);
-        values.put("status", 1);
-        values.put("time", System.currentTimeMillis());
-        mFavoriteDB.insert(FAVORITE_TABLE, null, values);
-    }
-
-    public void deleteFromFavorite(String path){
-        mFavoriteDB.delete(FAVORITE_TABLE, "path=?", new String[]{path});
-    }
-
-    public boolean isPathInFavorite(String path){
-        boolean isIn = false;
-        Cursor cursor = mFavoriteDB.query(FAVORITE_TABLE, new String[]{"path"}, null, null, null, null, null);
-        while(cursor.moveToNext()){
-            String curPath = cursor.getString(cursor.getColumnIndex("path"));
-            if(path.equals(curPath)){
-                isIn = true;
-                break;
-            }
-        }
-        cursor.close();
-
-        return isIn;
-    }
-
-    public ArrayList<FileInfo> getFavoriteList(){
-        ArrayList<FileInfo> favoriteList = new ArrayList<FileInfo>();
-        Cursor cursor = mFavoriteDB.query(FAVORITE_TABLE, new String[]{"path"}, null, null, null, null, null);
-        while(cursor.moveToNext()){
-            String path = cursor.getString(cursor.getColumnIndex("path"));
-            favoriteList.add(new FileInfo(this, path));
-        }
-        cursor.close();
-        return favoriteList;
     }
 }
