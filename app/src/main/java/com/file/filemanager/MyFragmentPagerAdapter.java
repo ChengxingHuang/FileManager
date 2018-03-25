@@ -1,10 +1,11 @@
 package com.file.filemanager;
 
-
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     public static final int PAGE_FRAGMENT_COUNT = 2;
 
     private int[] mTabTitles = {R.string.category_storage, R.string.phone_storage};
-    private Context mContext;
+    private MainActivity mMainActivity;
 
     private Fragment mCurrentFragment;
     private ListFragment mListFragment;
@@ -23,7 +24,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
     public MyFragmentPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
-        mContext = context;
+        mMainActivity = (MainActivity) context;
     }
 
     @Override
@@ -46,7 +47,7 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        return mContext.getString(mTabTitles[position]);
+        return mMainActivity.getString(mTabTitles[position]);
     }
 
     public boolean onBackPressed(){
@@ -63,6 +64,11 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     public void setPrimaryItem(ViewGroup container, int position, Object object){
         super.setPrimaryItem(container, position, object);
         mCurrentFragment = (Fragment) object;
+        if(mCurrentFragment == mListFragment){
+            mMainActivity.getFab().setVisibility(View.VISIBLE);
+        }else{
+            mMainActivity.getFab().setVisibility(View.GONE);
+        }
     }
 
     public void updateCurrentList(){

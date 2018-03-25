@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
@@ -57,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private Menu mNormalMenu;
     private MainActivityCallBack mCallBack;
     private Context mContext;
+    private FloatingActionButton mFloatingActionButton;
 
     private MenuItem mPasteMenuItem;
     private MenuItem mSearchMenuItem;
@@ -139,6 +141,8 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+
+        mFloatingActionButton = (FloatingActionButton)findViewById(R.id.floatingActionButton);
 
         FavoriteSQLOpenHelper sqlOpenHelper = new FavoriteSQLOpenHelper(this, "favorite.db", null, 0x01);
         mFavoriteDB = sqlOpenHelper.getWritableDatabase();
@@ -410,6 +414,10 @@ public class MainActivity extends AppCompatActivity {
         if(null != mItemCountView){
             mItemCountView.setText(count);
         }
+    }
+
+    public FloatingActionButton getFab(){
+        return mFloatingActionButton;
     }
 
     public void setCallBack(MainActivityCallBack callBack){

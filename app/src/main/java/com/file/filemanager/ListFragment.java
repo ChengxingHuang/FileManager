@@ -83,7 +83,7 @@ public class ListFragment extends Fragment {
             }
         });
 
-        mFloatingActionButton = (FloatingActionButton)v.findViewById(R.id.floatingActionButton);
+        mFloatingActionButton = mMainActivity.getFab();
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
