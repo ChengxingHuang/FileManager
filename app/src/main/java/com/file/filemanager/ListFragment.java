@@ -40,7 +40,7 @@ public class ListFragment extends Fragment {
     private FileListAdapter mFileListAdapter;
     private StorageListAdapter mStorageListAdapter;
 
-    private Context mContext;
+    private MainActivity mMainActivity;
     private RecyclerView mRecyclerView;
     private FloatingActionButton mFloatingActionButton;
     private TextView mEmptyText;
@@ -65,14 +65,14 @@ public class ListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        mContext = getActivity();
+        mMainActivity = (MainActivity) getActivity();
         View v =  inflater.inflate(R.layout.fragment_list, container, false);
 
         mEmptyText = (TextView) v.findViewById(R.id.empty_tips);
         mRecyclerView = (RecyclerView) v.findViewById(R.id.list_recycler);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(mMainActivity));
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new ListItemDecoration(mContext, LinearLayoutManager.VERTICAL));
+        mRecyclerView.addItemDecoration(new ListItemDecoration(mMainActivity, LinearLayoutManager.VERTICAL));
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
@@ -87,11 +87,11 @@ public class ListFragment extends Fragment {
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LayoutInflater inflater = LayoutInflater.from(mContext);
+                LayoutInflater inflater = LayoutInflater.from(mMainActivity);
                 View view = inflater.inflate(R.layout.new_folder_dialog, null);
                 final EditText nameEdit = (EditText)view.findViewById(R.id.name);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mMainActivity, R.style.AlertDialogCustom));
                 builder.setTitle(R.string.create_folder);
                 builder.setView(view);
                 builder.setNegativeButton(android.R.string.cancel, null);
@@ -167,24 +167,24 @@ public class ListFragment extends Fragment {
         if(null != mCreateFolderTask && mCreateFolderTask.getStatus() == AsyncTask.Status.RUNNING){
             mCreateFolderTask.cancel(true);
         }
-        mCreateFolderTask = new CreateFolderTask(mContext, path);
+        mCreateFolderTask = new CreateFolderTask(mMainActivity, path);
         mCreateFolderTask.execute();
         mCreateFolderTask.setCreateFolderFinish(new CreateFolderTask.CreateFolderFinish() {
             @Override
             public void createFolderDone(int errorCode) {
                 switch (errorCode){
                     case CreateFolderTask.ERROR_CODE_PARAM_ERROR:
-                        Toast.makeText(mContext, R.string.create_folder_illegal_tips, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mMainActivity, R.string.create_folder_illegal_tips, Toast.LENGTH_SHORT).show();
                         break;
                     case CreateFolderTask.ERROR_CODE_FOLDER_EXIST:
-                        Toast.makeText(mContext, R.string.create_folder_exist_tips, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mMainActivity, R.string.create_folder_exist_tips, Toast.LENGTH_SHORT).show();
                         break;
                     case CreateFolderTask.ERROR_CODE_MKDIR_ERROR:
-                        Toast.makeText(mContext, R.string.create_folder_unknown_error_tips, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mMainActivity, R.string.create_folder_unknown_error_tips, Toast.LENGTH_SHORT).show();
                         break;
                     default:
                         updateCurrentList();
-                        Toast.makeText(mContext, R.string.create_folder_success_tips, Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mMainActivity, R.string.create_folder_success_tips, Toast.LENGTH_SHORT).show();
                         break;
                 }
             }
@@ -206,7 +206,7 @@ public class ListFragment extends Fragment {
             }
         }
 
-        mStorageListAdapter = new StorageListAdapter(mContext, mStorageList, this);
+        mStorageListAdapter = new StorageListAdapter(mMainActivity, mStorageList, this);
         mRecyclerView.setAdapter(mStorageListAdapter);
     }
 
@@ -278,18 +278,18 @@ public class ListFragment extends Fragment {
             mShowFilesTask.cancel(true);
         }
 
-        mShowFilesTask = new ShowFilesTask(mContext, mCurPath);
+        mShowFilesTask = new ShowFilesTask(mMainActivity, mCurPath);
         mShowFilesTask.execute(mFileList);
         mShowFilesTask.setShowListFinish(new ShowFilesTask.ShowListFinish() {
             @Override
             public void showNormalPath() {
-                Collections.sort(mFileList, new FileInfo.NameComparator(mContext));
+                Collections.sort(mFileList, new FileInfo.NameComparator(mMainActivity));
                 scrollToPosition();
 
                 if(null != mFileListAdapter) {
                     mFileListAdapter.notifyDataSetChanged();
                 }else {
-                    mFileListAdapter = new FileListAdapter(mContext, mFileList, ListFragment.this);
+                    mFileListAdapter = new FileListAdapter(mMainActivity, mFileList, ListFragment.this);
                     mRecyclerView.setAdapter(mFileListAdapter);
                 }
             }
@@ -298,7 +298,7 @@ public class ListFragment extends Fragment {
             public void showEmptyPath() {
                 mRecyclerView.setVisibility(View.GONE);
                 mEmptyText.setVisibility(View.VISIBLE);
-                mEmptyText.setText(mCurPath + " " + mContext.getString(R.string.is_empty));
+                mEmptyText.setText(mCurPath + " " + mMainActivity.getString(R.string.is_empty));
 
                 LastPosition pos = new LastPosition();
                 pos.mLastPosition = -1;
@@ -319,11 +319,11 @@ public class ListFragment extends Fragment {
         for(int i = 0; i < list.size(); i++){
             mFileList.add(list.get(i));
         }
-        Collections.sort(mFileList, new FileInfo.NameComparator(mContext));
+        Collections.sort(mFileList, new FileInfo.NameComparator(mMainActivity));
         if(null != mFileListAdapter) {
             mFileListAdapter.notifyDataSetChanged();
         }else{
-            mFileListAdapter = new FileListAdapter(mContext, mFileList, this);
+            mFileListAdapter = new FileListAdapter(mMainActivity, mFileList, this);
             mRecyclerView.setAdapter(mFileListAdapter);
         }
 
