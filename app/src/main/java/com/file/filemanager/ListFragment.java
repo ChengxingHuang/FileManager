@@ -167,7 +167,7 @@ public class ListFragment extends Fragment {
         if(null != mCreateFolderTask && mCreateFolderTask.getStatus() == AsyncTask.Status.RUNNING){
             mCreateFolderTask.cancel(true);
         }
-        mCreateFolderTask = new CreateFolderTask(mMainActivity, path);
+        mCreateFolderTask = new CreateFolderTask(path);
         mCreateFolderTask.execute();
         mCreateFolderTask.setCreateFolderFinish(new CreateFolderTask.CreateFolderFinish() {
             @Override

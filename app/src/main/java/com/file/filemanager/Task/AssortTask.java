@@ -19,15 +19,15 @@ import java.util.List;
 
 public class AssortTask extends AsyncTask<List, Void, Void> {
 
-    public static final int CATEGORY_PICTURE = 0;
-    public static final int CATEGORY_MUSIC = 1;
-    public static final int CATEGORY_VIDEO = 2;
-    public static final int CATEGORY_DOCUMENT = 3;
-    public static final int CATEGORY_APK = 4;
-    public static final int CATEGORY_ZIP = 5;
-    public static final int CATEGORY_FAVORITE = 6;
-    public static final int CATEGORY_QQ = 7;
-    public static final int CATEGORY_WECHAT = 8;
+    private static final int CATEGORY_PICTURE = 0;
+    private static final int CATEGORY_MUSIC = 1;
+    private static final int CATEGORY_VIDEO = 2;
+    private static final int CATEGORY_DOCUMENT = 3;
+    private static final int CATEGORY_APK = 4;
+    private static final int CATEGORY_ZIP = 5;
+    private static final int CATEGORY_FAVORITE = 6;
+    private static final int CATEGORY_QQ = 7;
+    private static final int CATEGORY_WECHAT = 8;
 
     private String[] mPicture = {".jpg", ".png", ".jpeg", ".gif", ".bmp"};
     private String[] mMusic = {".mp3", ".wma", ".amr", ".aac", ".flac", ".ape", ".midi", ".ogg"};
@@ -36,12 +36,12 @@ public class AssortTask extends AsyncTask<List, Void, Void> {
     private String[] mApk = {".apk"};
     private String[] mArchive = {".zip", ".rar", ".tar", ".gz", ".7z"};
 
-    public static final String PATH_WECHAT = "tencent/MicroMsg";
-    public static final String PATH_QQ = "tencent/QQfile_recv";
+    private static final String PATH_WECHAT = "tencent/MicroMsg";
+    private static final String PATH_QQ = "tencent/QQfile_recv";
 
     private MainActivity mMainActivity;
-    private ArrayList<FileInfo> mQQList = new ArrayList<FileInfo>();;
-    private ArrayList<FileInfo> mWechatList = new ArrayList<FileInfo>();;
+    private ArrayList<FileInfo> mQQList = new ArrayList<>();
+    private ArrayList<FileInfo> mWechatList = new ArrayList<>();
     private AssortFinish mAssortFinish;
 
     public interface AssortFinish{
@@ -87,11 +87,11 @@ public class AssortTask extends AsyncTask<List, Void, Void> {
         if(null != path){
             File[] fileArray = new File(path).listFiles();
             if(null != fileArray) {
-                for (int i = 0; i < fileArray.length; i++) {
-                    if (fileArray[i].isDirectory()) {
-                        getTencentFiles(fileArray[i].toString(), isWeChat);
+                for (File file : fileArray) {
+                    if (file.isDirectory()) {
+                        getTencentFiles(file.toString(), isWeChat);
                     } else {
-                        FileInfo info = new FileInfo(mMainActivity, fileArray[i].toString());
+                        FileInfo info = new FileInfo(mMainActivity, file.toString());
                         if(isWeChat) {
                             if(!PreferenceUtils.getShowHideFileValue(mMainActivity) && info.isHideFileType())
                                 continue;

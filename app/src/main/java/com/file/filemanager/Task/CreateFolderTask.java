@@ -11,21 +11,19 @@ import java.io.File;
 
 public class CreateFolderTask extends AsyncTask<Void, Void, Integer> {
 
-    public static final int ERROR_CODE_CREATE_SUCCESS = 0x00;
+    private static final int ERROR_CODE_CREATE_SUCCESS = 0x00;
     public static final int ERROR_CODE_PARAM_ERROR = 0x01;
     public static final int ERROR_CODE_FOLDER_EXIST = 0x02;
     public static final int ERROR_CODE_MKDIR_ERROR = 0x03;
 
-    private Context mContext;
     private String mPath;
     private CreateFolderFinish mCreateFolderFinish;
 
     public interface CreateFolderFinish{
         void createFolderDone(int errorCode);
-    };
+    }
 
-    public CreateFolderTask(Context context, String path){
-        mContext = context;
+    public CreateFolderTask(String path){
         mPath = path;
     }
 

@@ -26,7 +26,7 @@ public class SearchTask extends AsyncTask<String, Void, Void> {
     public SearchTask(ArrayList<FileInfo> list, Context context){
         mSearchSourceList = list;
         mContext = context;
-        mSearchResultList = new ArrayList<FileInfo>();
+        mSearchResultList = new ArrayList<>();
     }
 
     /*
@@ -68,19 +68,19 @@ public class SearchTask extends AsyncTask<String, Void, Void> {
 
     private void searchByPath(String path, String keyWord){
         if(null == path){
-            Log.d(TAG, "Please check: searchByPath path = " + path);
+            Log.d(TAG, "Please check: searchByPath path is null");
             return;
         }
 
         FileInfo info = new FileInfo(mContext, path);
         File[] files = info.getFile().listFiles();
-        for(int i = 0; i < files.length; i++){
-            String[] tmp = files[i].toString().split("/");
+        for(File file : files){
+            String[] tmp = file.toString().split("/");
             String fullName = tmp[tmp.length - 1];
-            search(files[i].toString(), fullName, keyWord);
+            search(file.toString(), fullName, keyWord);
 
-            if(files[i].isDirectory()){
-                searchByPath(files[i].toString(), keyWord);
+            if(file.isDirectory()){
+                searchByPath(file.toString(), keyWord);
             }
         }
     }
