@@ -349,7 +349,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTaskResult(int result) {
-
+                mAdapter.updateCurrentList();
             }
         });
     }
