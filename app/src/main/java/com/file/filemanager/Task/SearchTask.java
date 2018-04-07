@@ -6,7 +6,7 @@ import android.util.Log;
 
 import com.file.filemanager.FileInfo;
 import com.file.filemanager.MountStorageManager;
-import com.file.filemanager.PreferenceUtils;
+import com.file.filemanager.Utils.PreferenceUtils;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -47,6 +46,8 @@ import com.file.filemanager.Service.FileOperatorListener;
 import com.file.filemanager.Service.TaskProgressInfo;
 import com.file.filemanager.Task.PasteTask;
 import com.file.filemanager.Task.SearchTask;
+import com.file.filemanager.Utils.OtherUtils;
+import com.file.filemanager.Utils.PreferenceUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
         MountStorageManager storageManager = MountStorageManager.getInstance();
         storageManager.init(this);
-        Utils.mimeTypeInit();
+        OtherUtils.mimeTypeInit();
 
         FavoriteSQLOpenHelper sqlOpenHelper = new FavoriteSQLOpenHelper(this, "favorite.db", null, 0x01);
         mFavoriteDB = sqlOpenHelper.getWritableDatabase();
@@ -349,7 +350,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTaskResult(int result) {
-                mAdapter.updateCurrentList();
+                switch(result){
+                    case ERROR_CODE_NO_PERMISSION:
+                        Toast.makeText(mContext, R.string.no_permission, Toast.LENGTH_SHORT).show();
+                        break;
+
+                    case ERROR_CODE_SUCCESS:
+                        mAdapter.updateCurrentList();
+                        break;
+                }
             }
         });
     }

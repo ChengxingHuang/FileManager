@@ -6,6 +6,8 @@ import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.util.Log;
 
+import com.file.filemanager.Utils.OtherUtils;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -47,14 +49,14 @@ public class MountStorageManager {
 
             for(StorageVolume volume : volumes){
                 MountStorage mountStorage = new MountStorage();
-                File path = Utils.getReflectFile(volume, "mPath");
+                File path = OtherUtils.getReflectFile(volume, "mPath");
 
                 mountStorage.mDescription = getStorageDescription(context, volume);
                 mountStorage.mPath = path.toString();
-                mountStorage.mIsMounted = Environment.MEDIA_MOUNTED.equals(Utils.getReflectString(volume, "mState"));
-                mountStorage.mRemovable = Utils.getReflectBoolean(volume, "mRemovable");
-                mountStorage.mAvailableSpace = Utils.getStorageAvailableSpace(context, mountStorage.mPath);
-                mountStorage.mTotalSpace = Utils.getStorageTotalSpace(context, mountStorage.mPath);
+                mountStorage.mIsMounted = Environment.MEDIA_MOUNTED.equals(OtherUtils.getReflectString(volume, "mState"));
+                mountStorage.mRemovable = OtherUtils.getReflectBoolean(volume, "mRemovable");
+                mountStorage.mAvailableSpace = OtherUtils.getStorageAvailableSpace(context, mountStorage.mPath);
+                mountStorage.mTotalSpace = OtherUtils.getStorageTotalSpace(context, mountStorage.mPath);
 
                 Log.d(TAG, "mDescription = " + mountStorage.mDescription + ", mPath = " + mountStorage.mPath
                             + ", mIsMounted = " + mountStorage.mIsMounted + ", mRemovable = " + mountStorage.mRemovable
@@ -78,11 +80,11 @@ public class MountStorageManager {
     private String getStorageDescription(Context context, StorageVolume volume){
         String description = null;
 
-        int descriptionId = Utils.getReflectInt(volume, "mDescriptionId");
+        int descriptionId = OtherUtils.getReflectInt(volume, "mDescriptionId");
         if(-1 != descriptionId){
             description = context.getString(descriptionId);
         }else{
-            description = Utils.getReflectString(volume, "mDescription");
+            description = OtherUtils.getReflectString(volume, "mDescription");
         }
 
         return description;

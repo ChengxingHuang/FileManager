@@ -8,6 +8,9 @@ import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import com.file.filemanager.Utils.OtherUtils;
+import com.file.filemanager.Utils.PreferenceUtils;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Comparator;
@@ -56,8 +59,8 @@ public class FileInfo {
                 mFileSize = sizeToHumanString(mFile.length());
                 String mimeType = getMimeType();
 
-                if(Utils.getRegisterMimeTypeMap().containsKey(mimeType)){
-                    mFileTypeImage = mContext.getResources().getDrawable(Utils.getRegisterMimeTypeMap().get(mimeType), null);
+                if(OtherUtils.getRegisterMimeTypeMap().containsKey(mimeType)){
+                    mFileTypeImage = mContext.getResources().getDrawable(OtherUtils.getRegisterMimeTypeMap().get(mimeType), null);
                 }else if("application/vnd.android.package-archive".equals(mimeType)){
                     // 解析APK，获得APK图标
                     mFileTypeImage = getAPKIcon(mFileAbsolutePath);

@@ -6,8 +6,8 @@ import android.os.AsyncTask;
 import com.file.filemanager.FileInfo;
 import com.file.filemanager.MainActivity;
 import com.file.filemanager.MountStorageManager;
-import com.file.filemanager.PreferenceUtils;
-import com.file.filemanager.Utils;
+import com.file.filemanager.Utils.PreferenceUtils;
+import com.file.filemanager.Utils.OtherUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -60,13 +60,13 @@ public class AssortTask extends AsyncTask<List, Void, Void> {
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ, false);
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_WECHAT, true);
         }
-        params[0].add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(mMainActivity, mPicture));
-        params[0].add(CATEGORY_PICTURE, Utils.getSpecificTypeOfFile(mMainActivity, mPicture));
-        params[0].add(CATEGORY_MUSIC, Utils.getSpecificTypeOfFile(mMainActivity, mMusic));
-        params[0].add(CATEGORY_VIDEO, Utils.getSpecificTypeOfFile(mMainActivity, mVideo));
-        params[0].add(CATEGORY_DOCUMENT, Utils.getSpecificTypeOfFile(mMainActivity, mDocument));
-        params[0].add(CATEGORY_APK, Utils.getSpecificTypeOfFile(mMainActivity, mApk));
-        params[0].add(CATEGORY_ZIP, Utils.getSpecificTypeOfFile(mMainActivity, mArchive));
+        params[0].add(CATEGORY_PICTURE, OtherUtils.getSpecificTypeOfFile(mMainActivity, mPicture));
+        params[0].add(CATEGORY_PICTURE, OtherUtils.getSpecificTypeOfFile(mMainActivity, mPicture));
+        params[0].add(CATEGORY_MUSIC, OtherUtils.getSpecificTypeOfFile(mMainActivity, mMusic));
+        params[0].add(CATEGORY_VIDEO, OtherUtils.getSpecificTypeOfFile(mMainActivity, mVideo));
+        params[0].add(CATEGORY_DOCUMENT, OtherUtils.getSpecificTypeOfFile(mMainActivity, mDocument));
+        params[0].add(CATEGORY_APK, OtherUtils.getSpecificTypeOfFile(mMainActivity, mApk));
+        params[0].add(CATEGORY_ZIP, OtherUtils.getSpecificTypeOfFile(mMainActivity, mArchive));
         params[0].add(CATEGORY_FAVORITE, mMainActivity.getFavoriteList());
         params[0].add(CATEGORY_QQ, mQQList);
         params[0].add(CATEGORY_WECHAT, mWechatList);

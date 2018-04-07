@@ -1,4 +1,4 @@
-package com.file.filemanager;
+package com.file.filemanager.Utils;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -7,6 +7,9 @@ import android.net.Uri;
 import android.os.StatFs;
 import android.provider.MediaStore;
 import android.text.format.Formatter;
+
+import com.file.filemanager.FileInfo;
+import com.file.filemanager.R;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -17,7 +20,7 @@ import java.util.HashMap;
  * Created by huang on 2017/7/21.
  */
 
-public class Utils {
+public class OtherUtils {
 
     private static final HashMap<String, Integer> sCustomDrawableIdsMap = new HashMap<String, Integer>();
 

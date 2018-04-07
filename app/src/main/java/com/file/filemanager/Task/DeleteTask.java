@@ -3,11 +3,13 @@ package com.file.filemanager.Task;
 import android.util.Log;
 
 import com.file.filemanager.Service.FileOperatorListener;
+import com.file.filemanager.Service.TaskProgressInfo;
 
 import java.io.File;
 
 import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_DELETE_FAIL;
 import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_FILE_NOT_EXIST;
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_NO_PERMISSION;
 import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_SUCCESS;
 
 /**
@@ -34,6 +36,10 @@ public class DeleteTask extends BaseAsyncTask {
         if(deleteFile.isDirectory()){
             return deleteFolder(deleteFile);
         }else{
+            if(!deleteFile.canWrite()){
+                return ERROR_CODE_NO_PERMISSION;
+            }
+
             if(!deleteFile.delete()){
                 return ERROR_CODE_DELETE_FAIL;
             }

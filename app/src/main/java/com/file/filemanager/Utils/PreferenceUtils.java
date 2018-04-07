@@ -1,4 +1,4 @@
-package com.file.filemanager;
+package com.file.filemanager.Utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;

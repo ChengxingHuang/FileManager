@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,6 +16,9 @@ import android.widget.BaseAdapter;
 import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.file.filemanager.Utils.OtherUtils;
+import com.file.filemanager.Utils.PreferenceUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
