@@ -1,68 +1,53 @@
 package com.file.filemanager.Task;
 
-import android.os.AsyncTask;
+import android.util.Log;
+
+import com.file.filemanager.Service.FileOperatorListener;
 
 import java.io.File;
+
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_DELETE_FAIL;
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_FILE_NOT_EXIST;
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_SUCCESS;
 
 /**
  * Created by huang on 2018/3/12.
  */
 
-public class DeleteTask extends AsyncTask<String, Integer, Integer> {
+public class DeleteTask extends BaseAsyncTask {
+    private static final String TAG = "DeleteTask";
 
-    public static final int ERROR_CODE_DELETE_SUCCESS = 0x00;
-    private static final int ERROR_CODE_PARAMS_ERROR = 0x01;
-    private static final int ERROR_CODE_DELETE_FILE_NOT_EXIST = 0x02;
-    private static final int ERROR_CODE_DELETE_FILE_FAIL = 0x03;
-    private static final int ERROR_CODE_DELETE_FOLDER_FAIL = 0x04;
+    private String mDeletePath;
 
-    private HandlerDeleteMessage mHandleDeleteMsg;
-
-    public interface HandlerDeleteMessage{
-        void deleteFinish(int result);
+    public DeleteTask(String deletePath, FileOperatorListener listener){
+        super(listener);
+        mDeletePath = deletePath;
     }
 
-    public void setHandleDeleteMsg(HandlerDeleteMessage handleMsg){
-        mHandleDeleteMsg = handleMsg;
-    }
-
-    //param[0]:delete path
     @Override
-    protected Integer doInBackground(String... params) {
-        String deletePath = params[0];
-
-        if(null == deletePath){
-            return ERROR_CODE_PARAMS_ERROR;
-        }
-
-        File deleteFile = new File(deletePath);
+    protected Integer doInBackground(Void... voids) {
+        File deleteFile = new File(mDeletePath);
         if(!deleteFile.exists()){
-            return ERROR_CODE_DELETE_FILE_NOT_EXIST;
+            return ERROR_CODE_FILE_NOT_EXIST;
         }
 
         if(deleteFile.isDirectory()){
             return deleteFolder(deleteFile);
         }else{
             if(!deleteFile.delete()){
-                return ERROR_CODE_DELETE_FILE_FAIL;
+                return ERROR_CODE_DELETE_FAIL;
             }
         }
 
-        return ERROR_CODE_DELETE_SUCCESS;
-    }
-
-    @Override
-    protected void onPostExecute(Integer integer) {
-        mHandleDeleteMsg.deleteFinish(integer);
+        return ERROR_CODE_SUCCESS;
     }
 
     private int deleteFolder(File path){
-        if (path == null || !path.exists() || !path.isDirectory())
-            return ERROR_CODE_DELETE_FOLDER_FAIL;
         for (File file : path.listFiles()) {
             if (file.isFile()) {
                 if(!file.delete()){
-                    return ERROR_CODE_DELETE_FILE_FAIL;
+                    Log.d(TAG, "delete file fail, path = " + path.toString());
+                    return ERROR_CODE_DELETE_FAIL;
                 }
             }else {
                 deleteFolder(file);
@@ -70,8 +55,9 @@ public class DeleteTask extends AsyncTask<String, Integer, Integer> {
         }
         // 删除目录本身
         if(!path.delete()){
-            return ERROR_CODE_DELETE_FOLDER_FAIL;
+            Log.d(TAG, "delete folder fail, path = " + path.toString());
+            return ERROR_CODE_DELETE_FAIL;
         }
-        return ERROR_CODE_DELETE_SUCCESS;
+        return ERROR_CODE_SUCCESS;
     }
 }

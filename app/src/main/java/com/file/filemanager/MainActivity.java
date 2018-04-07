@@ -2,16 +2,20 @@ package com.file.filemanager;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -37,6 +41,10 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.file.filemanager.Service.FileManagerService;
+import com.file.filemanager.Service.FileOperator;
+import com.file.filemanager.Service.FileOperatorListener;
+import com.file.filemanager.Service.TaskProgressInfo;
 import com.file.filemanager.Task.PasteTask;
 import com.file.filemanager.Task.SearchTask;
 
@@ -58,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
     private SearchView mSearchView;
     private AlertDialog.Builder mDialogBuilder;
     private ProgressDialog mCopyProcessDialog;
+    private ServiceConnection mServiceConnection;
 
     private MyFragmentPagerAdapter mAdapter;
     private MainActivityCallBack mCallBack;
@@ -65,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private Context mContext;
     private SearchTask mSearchTask;
     private PasteTask mPasteTask;
+    private FileOperator mFileOperator;
 
     private String mCopySrcPath;
     private boolean mIsCut;
@@ -79,8 +89,13 @@ public class MainActivity extends AppCompatActivity {
         MountStorageManager storageManager = MountStorageManager.getInstance();
         storageManager.init(this);
         Utils.mimeTypeInit();
+
         FavoriteSQLOpenHelper sqlOpenHelper = new FavoriteSQLOpenHelper(this, "favorite.db", null, 0x01);
         mFavoriteDB = sqlOpenHelper.getWritableDatabase();
+
+        mServiceConnection = new FileServiceConnection();
+        Intent intent = new Intent(this, FileManagerService.class);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
 
         requestPermission();
 
@@ -320,6 +335,25 @@ public class MainActivity extends AppCompatActivity {
         mCallBack = callBack;
     }
 
+    public void deleteFiles(String path){
+        mFileOperator.deleteFile(path, new FileOperatorListener() {
+            @Override
+            public void onTaskPrepare() {
+
+            }
+
+            @Override
+            public void onTaskProgress(TaskProgressInfo progressInfo) {
+
+            }
+
+            @Override
+            public void onTaskResult(int result) {
+
+            }
+        });
+    }
+
     public interface MainActivityCallBack{
         void cleanCheck();
     }
@@ -487,6 +521,37 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
+    }
+
+    class FileServiceConnection implements ServiceConnection{
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mFileOperator = (FileOperator)service;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    }
+
+    class ReuseOperationListener implements FileOperatorListener{
+
+        @Override
+        public void onTaskPrepare() {
+
+        }
+
+        @Override
+        public void onTaskProgress(TaskProgressInfo progressInfo) {
+
+        }
+
+        @Override
+        public void onTaskResult(int result) {
 
         }
     }

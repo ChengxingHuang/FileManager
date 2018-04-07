@@ -171,19 +171,19 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     }
 
     private void delete(final FileInfo fileInfo){
-        DeleteTask task = new DeleteTask();
-        task.execute(fileInfo.getFileAbsolutePath());
-        task.setHandleDeleteMsg(new DeleteTask.HandlerDeleteMessage() {
-            @Override
-            public void deleteFinish(int result) {
-                if(DeleteTask.ERROR_CODE_DELETE_SUCCESS == result){
-                    mListFragment.updateCurrentList();
-                    Toast.makeText(mMainActivity, R.string.delete_success, Toast.LENGTH_SHORT).show();
-                }else{
-                    Toast.makeText(mMainActivity, R.string.delete_fail, Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+//        DeleteTask task = new DeleteTask();
+//        task.execute(fileInfo.getFileAbsolutePath());
+//        task.setHandleDeleteMsg(new DeleteTask.HandlerDeleteMessage() {
+//            @Override
+//            public void deleteFinish(int result) {
+//                if(DeleteTask.ERROR_CODE_DELETE_SUCCESS == result){
+//                    mListFragment.updateCurrentList();
+//                    Toast.makeText(mMainActivity, R.string.delete_success, Toast.LENGTH_SHORT).show();
+//                }else{
+//                    Toast.makeText(mMainActivity, R.string.delete_fail, Toast.LENGTH_SHORT).show();
+//                }
+//            }
+//        });
     }
 
     private void rename(final FileInfo fileInfo){
