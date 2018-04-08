@@ -115,5 +115,6 @@
     <string name="special_tips">File name can\'t include special char</string>
 
     <string name="cancel_favorite">Cancel Favorite</string>
-    <string name="no_permission">No permission</string>
+    <string name="delete_no_permission">No permission to delete</string>
+    <string name="file_not_exist">File not exist</string>
 </resources>

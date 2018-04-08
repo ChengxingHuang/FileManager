@@ -8,6 +8,8 @@ import android.os.IBinder;
 import com.file.filemanager.Task.BaseAsyncTask;
 import com.file.filemanager.Task.DeleteTask;
 
+import java.util.List;
+
 public class FileManagerService extends Service {
     public FileManagerService() {
     }
@@ -20,8 +22,8 @@ public class FileManagerService extends Service {
         }
 
         @Override
-        public void deleteFile(String deletePath, FileOperatorListener listener) {
-            BaseAsyncTask task = new DeleteTask(deletePath, listener);
+        public void deleteFile(List<String> deletePaths, FileOperatorListener listener) {
+            BaseAsyncTask task = new DeleteTask(deletePaths, listener);
             task.execute();
         }
 

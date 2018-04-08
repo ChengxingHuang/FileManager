@@ -33,6 +33,7 @@ import android.support.v7.view.ActionMode;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -43,7 +44,7 @@ import android.widget.Toast;
 import com.file.filemanager.Service.FileManagerService;
 import com.file.filemanager.Service.FileOperator;
 import com.file.filemanager.Service.FileOperatorListener;
-import com.file.filemanager.Service.TaskProgressInfo;
+import com.file.filemanager.Task.TaskInfo;
 import com.file.filemanager.Task.PasteTask;
 import com.file.filemanager.Task.SearchTask;
 import com.file.filemanager.Utils.OtherUtils;
@@ -51,11 +52,14 @@ import com.file.filemanager.Utils.PreferenceUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
     public static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0x02;
+
+    private static final String TAG = "MainActivity";
     private static final String FAVORITE_TABLE = "favorite";
 
     private DrawerLayout mDrawerLayout;
@@ -336,31 +340,8 @@ public class MainActivity extends AppCompatActivity {
         mCallBack = callBack;
     }
 
-    public void deleteFiles(String path){
-        mFileOperator.deleteFile(path, new FileOperatorListener() {
-            @Override
-            public void onTaskPrepare() {
-
-            }
-
-            @Override
-            public void onTaskProgress(TaskProgressInfo progressInfo) {
-
-            }
-
-            @Override
-            public void onTaskResult(int result) {
-                switch(result){
-                    case ERROR_CODE_NO_PERMISSION:
-                        Toast.makeText(mContext, R.string.no_permission, Toast.LENGTH_SHORT).show();
-                        break;
-
-                    case ERROR_CODE_SUCCESS:
-                        mAdapter.updateCurrentList();
-                        break;
-                }
-            }
-        });
+    public void deleteFiles(List<String> paths){
+        mFileOperator.deleteFile(paths, new DeleteOperationListener());
     }
 
     public interface MainActivityCallBack{
@@ -547,7 +528,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class ReuseOperationListener implements FileOperatorListener{
+    //删除操作
+    class DeleteOperationListener implements FileOperatorListener{
 
         @Override
         public void onTaskPrepare() {
@@ -555,13 +537,45 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onTaskProgress(TaskProgressInfo progressInfo) {
+        public void onTaskProgress(TaskInfo progressInfo) {
 
         }
 
         @Override
-        public void onTaskResult(int result) {
+        public void onTaskResult(TaskInfo.ErrorInfo errorInfo) {
+            switch(errorInfo.mErrorCode){
+                case ERROR_CODE_DELETE_NO_PERMISSION:
+                    Log.d(TAG, "No delete permission:" + errorInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.delete_no_permission), errorInfo.mErrorPath);
+                    break;
 
+                case ERROR_CODE_DELETE_FAIL:
+                    Log.d(TAG, "Delete fail:" + errorInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.delete_fail), errorInfo.mErrorPath);
+                    break;
+
+                case ERROR_CODE_FILE_NOT_EXIST:
+                    showErrorAlert(getString(R.string.file_not_exist), errorInfo.mErrorPath);
+                    break;
+
+                case ERROR_CODE_SUCCESS:
+                    mAdapter.updateCurrentList();
+                    break;
+            }
+        }
+
+        private void showErrorAlert(String type, String path){
+            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(android.R.string.dialog_alert_title);
+            dialog.setMessage(type + ":" + path);
+            dialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            dialog.show();
         }
     }
 }

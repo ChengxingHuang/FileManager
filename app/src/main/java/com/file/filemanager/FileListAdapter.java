@@ -21,9 +21,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
 
-import com.file.filemanager.Task.DeleteTask;
-
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyViewHolder> implements MainActivity.MainActivityCallBack{
@@ -171,7 +170,9 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     }
 
     private void delete(final FileInfo fileInfo){
-        mMainActivity.deleteFiles(fileInfo.getFileAbsolutePath());
+        List<String> paths = new ArrayList<>();
+        paths.add(fileInfo.getFileAbsolutePath());
+        mMainActivity.deleteFiles(paths);
     }
 
     private void rename(final FileInfo fileInfo){

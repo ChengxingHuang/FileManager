@@ -3,7 +3,6 @@ package com.file.filemanager.Task;
 import android.os.AsyncTask;
 
 import com.file.filemanager.Service.FileOperatorListener;
-import com.file.filemanager.Service.TaskProgressInfo;
 
 import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_USER_CANCEL;
 
@@ -11,7 +10,7 @@ import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_USER_
  * Created by huang on 2018/4/1.
  */
 
-public abstract class BaseAsyncTask extends AsyncTask<Void, TaskProgressInfo, Integer> {
+public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo.ErrorInfo> {
 
     private FileOperatorListener mListener;
 
@@ -28,7 +27,7 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskProgressInfo, In
     }
 
     @Override
-    protected void onProgressUpdate(TaskProgressInfo... values) {
+    protected void onProgressUpdate(TaskInfo... values) {
         super.onProgressUpdate(values);
         if(null != values && null != values[0] && null != mListener){
             mListener.onTaskProgress(values[0]);
@@ -36,18 +35,18 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskProgressInfo, In
     }
 
     @Override
-    protected void onPostExecute(Integer integer) {
-        super.onPostExecute(integer);
+    protected void onPostExecute(TaskInfo.ErrorInfo errorInfo) {
+        super.onPostExecute(errorInfo);
         if(null != mListener){
-            mListener.onTaskResult(integer);
+            mListener.onTaskResult(errorInfo);
         }
     }
 
     @Override
-    protected void onCancelled(Integer integer) {
-        super.onCancelled(integer);
+    protected void onCancelled(TaskInfo.ErrorInfo errorInfo) {
+        super.onCancelled(errorInfo);
         if(null != mListener){
-            mListener.onTaskResult(ERROR_CODE_USER_CANCEL);
+            mListener.onTaskResult(errorInfo);
             mListener = null;
         }
     }
