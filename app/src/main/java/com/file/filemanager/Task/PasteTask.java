@@ -23,6 +23,7 @@ public class PasteTask extends BaseAsyncTask {
     private List<String> mCopySrcPaths;
     private String mCopyDstPath;
     private String mCurName;
+    private String mFileSuffix;
     private TaskInfo mTaskInfo;
 
     public PasteTask(List<String> srcPaths, String dstPath, FileOperatorListener listener){
@@ -53,11 +54,32 @@ public class PasteTask extends BaseAsyncTask {
                 String[] tmp = copySrcPath.split("/");
                 mCurName = tmp[tmp.length - 1];
                 File dstFile = new File(mCopyDstPath + "/" + mCurName);
+                mFileSuffix = mCurName.substring(mCurName.lastIndexOf("."), mCurName.length());
+
+                //文件已经存在目录路径中
+                if(dstFile.exists()){
+                    //目标路径和源路径是一样的，在源文件名中增加(x)
+                    String tmpPath = copySrcPath.substring(0, copySrcPath.lastIndexOf("/"));
+                    if(tmpPath.equals(mCopyDstPath)){
+                        dstFile = new File(mCopyDstPath + "/" + reName(0) + mFileSuffix);
+                    }else{
+                        //需要提示框，按照提示框操作
+                    }
+                }
                 errorInfo = copyFile(srcFile, dstFile);
             }
         }
 
         return errorInfo;
+    }
+
+    private String reName(int index){
+        String newName = mCurName.substring(0, mCurName.lastIndexOf(".")) + "(" + index + ")";
+        File newFile = new File(mCopyDstPath + "/" + newName + mFileSuffix);
+        if(newFile.exists()){
+            return reName(index + 1);
+        }
+        return newName;
     }
 
     private TaskInfo.ErrorInfo copyFile(File srcFile, File dstFile){
