@@ -538,8 +538,11 @@ public class MainActivity extends AppCompatActivity {
         public void onTaskResult(TaskInfo.ErrorInfo errorInfo) {
             mCopyProcessDialog.dismiss();
             switch(errorInfo.mErrorCode){
-                //黏贴成功
+                //黏贴成功，如果是剪切，需要删除源文件
                 case ERROR_CODE_SUCCESS:
+                    if(mIsCut){
+                        mFileOperator.deleteFile(mCopySrcList, new DeleteOperationListener());
+                    }
                     mAdapter.updateCurrentList();
                     break;
 
