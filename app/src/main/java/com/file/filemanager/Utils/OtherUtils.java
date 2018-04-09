@@ -21,6 +21,15 @@ import java.util.HashMap;
  */
 
 public class OtherUtils {
+    private static final String UNIT_B = "B";
+    private static final String UNIT_KB = "KB";
+    private static final String UNIT_MB = "MB";
+    private static final String UNIT_GB = "GB";
+    private static final String UNIT_TB = "TB";
+
+    private static final int UNIT_INTERVAL = 1024;
+    private static final double ROUNDING_OFF = 0.005;
+    private static final int DECIMAL_NUMBER = 100;
 
     private static final HashMap<String, Integer> sCustomDrawableIdsMap = new HashMap<String, Integer>();
 
@@ -139,6 +148,40 @@ public class OtherUtils {
         }
 
         return description;
+    }
+
+    /**
+     * 将byte转换为B/KB/MB/GB/TB
+     */
+    public static String sizeToHumanString(long size) {
+        String unit = UNIT_B;
+        if (size < DECIMAL_NUMBER) {
+            return Long.toString(size) + " " + unit;
+        }
+
+        unit = UNIT_KB;
+        double sizeDouble = (double) size / (double) UNIT_INTERVAL;
+        if (sizeDouble > UNIT_INTERVAL) {
+            sizeDouble = (double) sizeDouble / (double) UNIT_INTERVAL;
+            unit = UNIT_MB;
+        }
+        if (sizeDouble > UNIT_INTERVAL) {
+            sizeDouble = (double) sizeDouble / (double) UNIT_INTERVAL;
+            unit = UNIT_GB;
+        }
+        if (sizeDouble > UNIT_INTERVAL) {
+            sizeDouble = (double) sizeDouble / (double) UNIT_INTERVAL;
+            unit = UNIT_TB;
+        }
+
+        long sizeInt = (long) ((sizeDouble + ROUNDING_OFF) * DECIMAL_NUMBER);
+        double formatSize = ((double) sizeInt) / DECIMAL_NUMBER;
+
+        if (formatSize == 0) {
+            return "0" + " " + unit;
+        } else {
+            return Double.toString(formatSize) + " " + unit;
+        }
     }
 
     // TODO: 2017/12/17 MediaStore好像不会自动更新 

@@ -8,46 +8,29 @@ public class TaskInfo {
     private static final int NEED_UPDATE_TIME = 200;
     private long mStartOperationTime = 0;
     private long mProgressSize = 0;
-    private long mTotalSize = 0;
-    private long mCurrentNumber = 0;
-    private long mTotalNumber = 0;
+    private String mCurName;
 
     public TaskInfo() {
         mStartOperationTime = System.currentTimeMillis();
-    }
-
-    public long getProgress() {
-        return mProgressSize;
-    }
-
-    public long getTotal() {
-        return mTotalSize;
-    }
-
-    public long getCurrentNumber() {
-        return mCurrentNumber;
-    }
-
-    public long getTotalNumber() {
-        return mTotalNumber;
     }
 
     public void updateProgress(long addSize) {
         mProgressSize += addSize;
     }
 
-    public void updateTotal(long addSize) {
-        mTotalSize += addSize;
+    public long getProgress() {
+        return mProgressSize;
     }
 
-    public void updateCurrentNumber(long addNumber) {
-        mCurrentNumber += addNumber;
+    public void updateCurName(String curName){
+        mCurName = curName;
     }
 
-    public void updateTotalNumber(long addNumber) {
-        mTotalNumber += addNumber;
+    public String getCurName(){
+        return mCurName;
     }
 
+    //200m刷新一次
     public boolean needUpdate() {
         long operationTime = System.currentTimeMillis() - mStartOperationTime;
         if (operationTime > NEED_UPDATE_TIME) {

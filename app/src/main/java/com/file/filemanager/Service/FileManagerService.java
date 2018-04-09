@@ -7,6 +7,7 @@ import android.os.IBinder;
 
 import com.file.filemanager.Task.BaseAsyncTask;
 import com.file.filemanager.Task.DeleteTask;
+import com.file.filemanager.Task.PasteTask;
 
 import java.util.List;
 
@@ -15,10 +16,12 @@ public class FileManagerService extends Service {
     }
 
     class FileOperatorBinder extends Binder implements FileOperator{
+        private BaseAsyncTask mPasteTask;
 
         @Override
-        public void pasteFile(String srcPath, String dstPath, boolean isCut, FileOperatorListener listener) {
-
+        public void pasteFile(List<String> srcPaths, String dstPath, FileOperatorListener listener) {
+            mPasteTask = new PasteTask(srcPaths, dstPath, listener);
+            mPasteTask.execute();
         }
 
         @Override
@@ -45,6 +48,12 @@ public class FileManagerService extends Service {
         @Override
         public void searchFile(FileOperatorListener listener) {
 
+        }
+
+        @Override
+        public void cancelTask(int taskId) {
+            if(TASK_PASTE_ID == taskId)
+                mPasteTask.cancel(true);
         }
     }
 

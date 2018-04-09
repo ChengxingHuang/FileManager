@@ -63,7 +63,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         }
         holder.mFileTypeImage.setImageDrawable(fileInfo.getFileTypeImage());
         holder.mFileNameText.setText(fileInfo.getFileName());
-        holder.mFileSizeText.setText(fileInfo.getFileSize());
+        holder.mFileSizeText.setText(fileInfo.getHumanSize());
         holder.mLastModifiedDateText.setText(fileInfo.getFileLastModifiedDate());
         holder.mLastModifiedTimeText.setText(fileInfo.getFileLastModifiedTime());
         holder.mOptionMenuImage.setOnClickListener(new View.OnClickListener() {
@@ -165,8 +165,9 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
     private void copy(boolean isCut, final FileInfo fileInfo){
         mMainActivity.setPasteIconVisible(true);
-        mMainActivity.setCutMode(isCut);
-        mMainActivity.setSrcPastePath(fileInfo.getFileAbsolutePath());
+        List<FileInfo> fileInfoList = new ArrayList<>();
+        fileInfoList.add(fileInfo);
+        mMainActivity.setSrcCopyPath(fileInfoList, isCut);
     }
 
     private void delete(final FileInfo fileInfo){
@@ -264,10 +265,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
 
     private void showDetails(final FileInfo fileInfo){
         String fileName = fileInfo.getFileName();
-        String size = fileInfo.getFileSize();
-        if(fileInfo.isFolder()){
-            size = fileInfo.getFolderSizeHuman(fileInfo.getFile()) + "";
-        }
+        String size = fileInfo.getHumanSize();
         String path = fileInfo.getParentFileAbsolutePath();
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mMainActivity, R.style.AlertDialogCustom));
         AlertDialog dialog = builder.create();

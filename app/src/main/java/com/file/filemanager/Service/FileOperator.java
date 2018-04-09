@@ -7,10 +7,13 @@ import java.util.List;
  */
 
 public interface FileOperator {
-    void pasteFile(String srcPath, String dstPath, boolean isCut, FileOperatorListener listener);
+    int TASK_PASTE_ID = 0x01;
+
+    void pasteFile(List<String> srcPaths, String dstPath, FileOperatorListener listener);
     void deleteFile(List<String> deletePaths, FileOperatorListener listener);
     void createFolder(String newFilePath, FileOperatorListener listener);
     void showFile(String filePath, FileOperatorListener listener);
     void sortFile(FileOperatorListener listener);
     void searchFile(FileOperatorListener listener);
+    void cancelTask(int taskId);
 }

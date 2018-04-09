@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
     private MenuItem mPasteMenuItem;
     private SearchView mSearchView;
     private AlertDialog.Builder mDialogBuilder;
-    private ProgressDialog mCopyProcessDialog;
     private ServiceConnection mServiceConnection;
 
     private MyFragmentPagerAdapter mAdapter;
@@ -78,10 +77,10 @@ public class MainActivity extends AppCompatActivity {
     private SQLiteDatabase mFavoriteDB;
     private Context mContext;
     private SearchTask mSearchTask;
-    private PasteTask mPasteTask;
     private FileOperator mFileOperator;
 
-    private String mCopySrcPath;
+    private List<String> mCopySrcList;
+    private long mTotalOperatorSize;
     private boolean mIsCut;
 
     @Override
@@ -209,19 +208,8 @@ public class MainActivity extends AppCompatActivity {
         mPasteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-                String[] params = {mCopySrcPath, mAdapter.getCurPath()};
-                String tmp[] = mCopySrcPath.split("/");
-                String fileName = tmp[tmp.length - 1];
-                File dstFile = new File(mAdapter.getCurPath() + "/" + fileName);
-
-                if(dstFile.exists()) {
-                    // TODO: 2018/3/13 自己覆盖自己的情况还没有处理 
-                    showCopyConfirmDialog(params, fileName);
-                }else{
-                    startPaste(params, fileName);
-                }
-
                 mPasteMenuItem.setVisible(false);
+                mFileOperator.pasteFile(mCopySrcList, mAdapter.getCurPath(), new PasteOperationListener());
                 return true;
             }
         });
@@ -313,12 +301,13 @@ public class MainActivity extends AppCompatActivity {
         mPasteMenuItem.setVisible(visible);
     }
 
-    public void setSrcPastePath(String srcPath){
-        mCopySrcPath = srcPath;
-    }
-
-    public void setCutMode(boolean isCut){
+    public void setSrcCopyPath(List<FileInfo> fileInfoList, boolean isCut){
         mIsCut = isCut;
+        mCopySrcList = new ArrayList<>();
+        for(FileInfo fileInfo : fileInfoList){
+            mCopySrcList.add(fileInfo.getFileAbsolutePath());
+            mTotalOperatorSize += fileInfo.getMachineSize();
+        }
     }
 
     public void setRenameAndDetailMenuVisible(boolean visible){
@@ -395,71 +384,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startPaste(String[] params, final String fileName){
-        mPasteTask = new PasteTask(mIsCut);
-        mPasteTask.execute(params);
-        mPasteTask.setPasteFinish(new PasteTask.HandlePasteMessage() {
-            @Override
-            public void pasteFinish(int errorCode) {
-                mCopyProcessDialog.dismiss();
-                if (PasteTask.ERROR_CODE_SUCCESS != errorCode) {
-                    mDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-                    mDialogBuilder.setTitle(R.string.copy_fail);
-                    mDialogBuilder.setMessage(fileName);
-                    mDialogBuilder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-                    mDialogBuilder.show();
-                } else {
-                    mAdapter.updateCurrentList();
-                }
-            }
-
-            @Override
-            public void updateProgress(int value) {
-                mCopyProcessDialog.setProgress(value);
-            }
-        });
-
-        mCopyProcessDialog = new ProgressDialog(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-        mCopyProcessDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-        mCopyProcessDialog.setTitle(R.string.copying);
-        mCopyProcessDialog.setMessage(fileName);
-        mCopyProcessDialog.setMax(100);
-        mCopyProcessDialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel),
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        mPasteTask.cancel(true);
-                        mCopyProcessDialog.dismiss();
-                    }
-                });
-        mCopyProcessDialog.show();
-    }
-
-    private void showCopyConfirmDialog(final String[] params, final String fileName){
-        mDialogBuilder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-        mDialogBuilder.setTitle(R.string.paste);
-        mDialogBuilder.setMessage(fileName + " " + getString(R.string.is_exist));
-        mDialogBuilder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        mDialogBuilder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                startPaste(params, fileName);
-                dialog.dismiss();
-            }
-        });
-        mDialogBuilder.show();
-    }
-
     private void showSortByDialog(){
         int defaultSortBy = PreferenceUtils.getSortByValue(mContext);
         String[] sortByString = getResources().getStringArray(R.array.sort_by);
@@ -493,6 +417,20 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mDialogBuilder.show();
+    }
+
+    private void showErrorAlert(String type, String path){
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+        AlertDialog dialog = builder.create();
+        dialog.setTitle(android.R.string.dialog_alert_title);
+        dialog.setMessage(type + ":" + path);
+        dialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 
     static class FavoriteSQLOpenHelper extends SQLiteOpenHelper {
@@ -563,19 +501,68 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }
+    }
 
-        private void showErrorAlert(String type, String path){
-            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
-            AlertDialog dialog = builder.create();
-            dialog.setTitle(android.R.string.dialog_alert_title);
-            dialog.setMessage(type + ":" + path);
-            dialog.setButton(DialogInterface.BUTTON_POSITIVE, getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.dismiss();
-                }
-            });
-            dialog.show();
+    //黏贴操作
+    class PasteOperationListener implements FileOperatorListener{
+
+        private ProgressDialog mCopyProcessDialog;
+
+        @Override
+        public void onTaskPrepare() {
+            mCopyProcessDialog = new ProgressDialog(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+            mCopyProcessDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            mCopyProcessDialog.setTitle(R.string.copying);
+            mCopyProcessDialog.setMax(100);
+            mCopyProcessDialog.setMessage("");
+            mCopyProcessDialog.setButton(DialogInterface.BUTTON_NEGATIVE, mContext.getString(android.R.string.cancel),
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            mFileOperator.cancelTask(FileOperator.TASK_PASTE_ID);
+                            mCopyProcessDialog.dismiss();
+                        }
+                    });
+            mCopyProcessDialog.show();
+        }
+
+        @Override
+        public void onTaskProgress(TaskInfo progressInfo) {
+            long readSize = progressInfo.getProgress();
+            float percent = ((float)readSize / (float)mTotalOperatorSize) * 100;
+            mCopyProcessDialog.setMessage(progressInfo.getCurName());
+            mCopyProcessDialog.setProgress(Math.round(percent));
+        }
+
+        @Override
+        public void onTaskResult(TaskInfo.ErrorInfo errorInfo) {
+            mCopyProcessDialog.dismiss();
+            switch(errorInfo.mErrorCode){
+                //黏贴成功
+                case ERROR_CODE_SUCCESS:
+                    mAdapter.updateCurrentList();
+                    break;
+
+                //用户取消黏贴，删除正在黏贴的部分
+                case ERROR_CODE_USER_CANCEL:
+                    List<String> list = new ArrayList<>();
+                    list.add(errorInfo.mErrorPath);
+                    mFileOperator.deleteFile(list, new DeleteOperationListener());
+                    mAdapter.updateCurrentList();
+                    break;
+
+                //创建文件夹失败
+                case ERROR_CODE_MKDIR_ERROR:
+                    Log.d(TAG, "mkdir fail when copy file:" + errorInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.create_folder_unknown_error_tips), errorInfo.mErrorPath);
+                    break;
+
+                //源文件不存在
+                case ERROR_CODE_FILE_NOT_EXIST:
+                    Log.d(TAG, "Copy source file not exist:" + errorInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.file_not_exist), errorInfo.mErrorPath);
+                    break;
+            }
         }
     }
 }

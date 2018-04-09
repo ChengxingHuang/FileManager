@@ -23,16 +23,6 @@ import java.util.Locale;
 public class FileInfo {
     public static final String TAG = "FileInfo";
 
-    private static final String UNIT_B = "B";
-    private static final String UNIT_KB = "KB";
-    private static final String UNIT_MB = "MB";
-    private static final String UNIT_GB = "GB";
-    private static final String UNIT_TB = "TB";
-
-    private static final int UNIT_INTERVAL = 1024;
-    private static final double ROUNDING_OFF = 0.005;
-    private static final int DECIMAL_NUMBER = 100;
-
     private Context mContext;
     private File mFile;
     private String mFileAbsolutePath;
@@ -56,7 +46,7 @@ public class FileInfo {
                 mFileSize = getChildFilesCount(context) + "";
                 mFileTypeImage = mContext.getResources().getDrawable(R.drawable.file_type_folder, null);
             }else{
-                mFileSize = sizeToHumanString(mFile.length());
+                mFileSize = OtherUtils.sizeToHumanString(mFile.length());
                 String mimeType = getMimeType();
 
                 if(OtherUtils.getRegisterMimeTypeMap().containsKey(mimeType)){
@@ -124,11 +114,27 @@ public class FileInfo {
         return mFileName.substring(mFileName.lastIndexOf("."), mFileName.length());
     }
 
-    public String getFileSize() {
+    public String getHumanSize(){
+        if(isFolder()){
+            return getFolderSizeHuman();
+        }else{
+            return getFileSize();
+        }
+    }
+
+    public long getMachineSize(){
+        if(isFolder()){
+            return getFolderSize(mFile);
+        }else{
+            return mFile.length();
+        }
+    }
+
+    private String getFileSize() {
         return mFileSize;
     }
 
-    public long getFolderSize(File file){
+    private long getFolderSize(File file){
         if (file.exists()) {
             //如果是目录则递归计算其内容的总大小
             if (file.isDirectory()) {
@@ -152,8 +158,8 @@ public class FileInfo {
         }
     }
 
-    public String getFolderSizeHuman(File file){
-        return sizeToHumanString(getFolderSize(file));
+    private String getFolderSizeHuman(){
+        return OtherUtils.sizeToHumanString(getFolderSize(mFile));
     }
 
     public boolean isFolder() {
@@ -193,40 +199,6 @@ public class FileInfo {
                 length++;
             }
             return length;
-        }
-    }
-
-    /**
-     * 将byte转换为B/KB/MB/GB/TB
-     */
-    private String sizeToHumanString(long size) {
-        String unit = UNIT_B;
-        if (size < DECIMAL_NUMBER) {
-            return Long.toString(size) + " " + unit;
-        }
-
-        unit = UNIT_KB;
-        double sizeDouble = (double) size / (double) UNIT_INTERVAL;
-        if (sizeDouble > UNIT_INTERVAL) {
-            sizeDouble = (double) sizeDouble / (double) UNIT_INTERVAL;
-            unit = UNIT_MB;
-        }
-        if (sizeDouble > UNIT_INTERVAL) {
-            sizeDouble = (double) sizeDouble / (double) UNIT_INTERVAL;
-            unit = UNIT_GB;
-        }
-        if (sizeDouble > UNIT_INTERVAL) {
-            sizeDouble = (double) sizeDouble / (double) UNIT_INTERVAL;
-            unit = UNIT_TB;
-        }
-
-        long sizeInt = (long) ((sizeDouble + ROUNDING_OFF) * DECIMAL_NUMBER);
-        double formatedSize = ((double) sizeInt) / DECIMAL_NUMBER;
-
-        if (formatedSize == 0) {
-            return "0" + " " + unit;
-        } else {
-            return Double.toString(formatedSize) + " " + unit;
         }
     }
 

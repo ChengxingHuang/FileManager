@@ -1,144 +1,94 @@
 package com.file.filemanager.Task;
 
-import android.os.AsyncTask;
-import android.util.Log;
+import com.file.filemanager.Service.FileOperatorListener;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.List;
+
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_FILE_NOT_EXIST;
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_MKDIR_ERROR;
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_SUCCESS;
+import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_USER_CANCEL;
 
 /**
  * Created by huang on 2018/3/4.
  */
 
-public class PasteTask extends AsyncTask<String, Integer, Integer> {
+public class PasteTask extends BaseAsyncTask {
 
-    private static final String TAG = "PasteTask";
+    private static final int BUFFER_SIZE = 2048 * 1024;
 
-    public static final int ERROR_CODE_SUCCESS = 0x00;
+    private List<String> mCopySrcPaths;
+    private String mCopyDstPath;
+    private String mCurName;
+    private TaskInfo mTaskInfo;
 
-    private static final int ERROR_CODE_PARAMS_ERROR = 0x01;
-    private static final int ERROR_CODE_SRC_FILE_NOT_EXIST = 0x02;
-    private static final int ERROR_CODE_EXCEPTION = 0x04;
-    private static final int ERROR_CODE_MKDIR_ERROR = 0x05;
-
-    private static final int ERROR_CODE_DELETE_FILE_FAIL = 0x06;
-    private static final int ERROR_CODE_DELETE_FOLDER_FAIL = 0x07;
-
-    private static final int BUFFER_SIZE = 1024;
-
-    private HandlePasteMessage mHandlePasteMsg;
-    private boolean mIsCut = false;
-    private String mSrcPath;
-    private File mCurFilePath;
-
-    public interface HandlePasteMessage{
-        void updateProgress(int value);
-        void pasteFinish(int errorCode);
-    }
-
-    // TODO: 2018/3/13 各种异常还没有进行测试
-
-    public PasteTask(boolean isCut){
-        mIsCut = isCut;
-    }
-
-    //param[0]:srcPath
-    //param[1]:dstPath
-    @Override
-    protected Integer doInBackground(String... params) {
-        mSrcPath = params[0];
-        String dstPath = params[1];
-
-        if(null == mSrcPath || null == dstPath){
-            return ERROR_CODE_PARAMS_ERROR;
-        }
-
-        File srcFile = new File(mSrcPath);
-        if(!srcFile.exists()){
-            return ERROR_CODE_SRC_FILE_NOT_EXIST;
-        }
-
-        if(srcFile.isDirectory()){
-            //copy文件夹
-            return copyDirectory(mSrcPath, dstPath);
-        }else{
-            //copy文件
-            String[] tmp = mSrcPath.split("/");
-            File dstFile = new File(dstPath + "/" + tmp[tmp.length - 1]);
-            return copyFile(srcFile, dstFile);
-        }
+    public PasteTask(List<String> srcPaths, String dstPath, FileOperatorListener listener){
+        super(listener);
+        mCopySrcPaths = srcPaths;
+        mCopyDstPath = dstPath;
+        mTaskInfo = new TaskInfo();
     }
 
     @Override
-    protected void onProgressUpdate(Integer... values) {
-        mHandlePasteMsg.updateProgress(values[0]);
-    }
+    protected TaskInfo.ErrorInfo doInBackground(Void... params) {
+        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
 
-    @Override
-    protected void onPostExecute(Integer result) {
-        int realResult = result;
-        //黏贴文件失败，删除已经黏贴的部分
-        if((null != mCurFilePath) && (ERROR_CODE_MKDIR_ERROR != result) && (ERROR_CODE_SUCCESS != result)){
-            if(!mCurFilePath.delete()){
-                realResult = ERROR_CODE_DELETE_FILE_FAIL;
+        for(String copySrcPath : mCopySrcPaths) {
+            errorInfo.mErrorPath = copySrcPath;
+            File srcFile = new File(copySrcPath);
+
+            if (!srcFile.exists()) {
+                errorInfo.mErrorCode = ERROR_CODE_FILE_NOT_EXIST;
+                break;
             }
-        }
-        //剪切成功，删除原文件
-        else if(mIsCut && (ERROR_CODE_SUCCESS == result)){
-            File srcFile = new File(mSrcPath);
-            if(srcFile.isDirectory()){
-                realResult = deleteFolder(srcFile);
-            }else{
-                if(!srcFile.delete()){
-                    realResult = ERROR_CODE_DELETE_FILE_FAIL;
-                }
+
+            if (srcFile.isDirectory()) {
+                //copy文件夹
+                errorInfo = copyDirectory(copySrcPath, mCopyDstPath);
+            } else {
+                //copy文件
+                String[] tmp = copySrcPath.split("/");
+                mCurName = tmp[tmp.length - 1];
+                File dstFile = new File(mCopyDstPath + "/" + mCurName);
+                errorInfo = copyFile(srcFile, dstFile);
             }
         }
 
-        mHandlePasteMsg.pasteFinish(realResult);
+        return errorInfo;
     }
 
-    public void setPasteFinish(HandlePasteMessage pasteFinish){
-        mHandlePasteMsg = pasteFinish;
-    }
-
-    private int copyFile(File srcFile, File dstFile){
-        int ret = ERROR_CODE_SUCCESS;
+    private TaskInfo.ErrorInfo copyFile(File srcFile, File dstFile){
+        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
         FileInputStream ins = null;
         FileOutputStream fos = null;
-        mCurFilePath = dstFile;
 
         try {
-            long readSize = 0;
-            long srcFileSize = srcFile.length();
+            int readBuffer;
+            byte[] buffer = new byte[BUFFER_SIZE];
             ins = new FileInputStream(srcFile);
             fos = new FileOutputStream(dstFile);
-            byte[] buffer = new byte[BUFFER_SIZE];
-            int readBuffer;
 
             while (-1 != (readBuffer = ins.read(buffer))) {
-                //用户取消黏贴，删除已经黏贴的部分
+                //用户取消黏贴
                 if(isCancelled()) {
-                    Log.d(TAG, "User cancel copy, delete " + mCurFilePath.toString());
-                    if(!mCurFilePath.delete()){
-                        Log.d(TAG, "User cancel copy, delete " + mCurFilePath.toString() + " failed!!!");
-                        if(mCurFilePath.isDirectory())
-                            ret = ERROR_CODE_DELETE_FOLDER_FAIL;
-                        else
-                            ret = ERROR_CODE_DELETE_FILE_FAIL;
-                    }
-                    break;
+                    errorInfo.mErrorCode = ERROR_CODE_USER_CANCEL;
+                    errorInfo.mErrorPath = dstFile.toString();
+                    return errorInfo;
                 }
                 fos.write(buffer, 0, readBuffer);
-                readSize += readBuffer;
-                float percent = ((float)readSize / (float)srcFileSize) * 100;
-                publishProgress(Math.round(percent));
+
+                //更新数据
+                mTaskInfo.updateProgress(readBuffer);
+                mTaskInfo.updateCurName(mCurName);
+                if(mTaskInfo.needUpdate()) {
+                    publishProgress(mTaskInfo);
+                }
             }
         } catch (Exception e){
-            Log.d(TAG, "copyFile IOException 1!");
             e.printStackTrace();
-            ret = ERROR_CODE_EXCEPTION;
         } finally {
             try {
                 if(null != ins){
@@ -150,59 +100,52 @@ public class PasteTask extends AsyncTask<String, Integer, Integer> {
                     fos.close();
                 }
             } catch (Exception e){
-                Log.d(TAG, "copyFile IOException 2!");
                 e.printStackTrace();
-                ret = ERROR_CODE_EXCEPTION;
             }
         }
 
-        return ret;
+        errorInfo.mErrorCode = ERROR_CODE_SUCCESS;
+        return errorInfo;
     }
 
-    private int copyDirectory(String srcPath, String dstPath){
-        int ret = ERROR_CODE_SUCCESS;
+    private TaskInfo.ErrorInfo copyDirectory(String srcPath, String dstPath){
+        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
         File srcFile = new File(srcPath);
         File[] files = srcFile.listFiles();
+
+        String dirTmp[] = srcPath.split("/");
+        String dirName = dirTmp[dirTmp.length -1];
+        dstPath = dstPath + "/" + dirName;
+        File dstFolder = new File(dstPath);
+        if(!dstFolder.mkdirs()) {
+            errorInfo.mErrorPath = dstPath;
+            errorInfo.mErrorCode = ERROR_CODE_MKDIR_ERROR;
+            return errorInfo;
+        }
+
         for(File file : files){
             String tmp[] = file.toString().split("/");
-            String srcName = tmp[tmp.length -1];
-            File dstFile = new File(dstPath + "/" + srcName);
+            mCurName = tmp[tmp.length -1];
+            File dstFile = new File(dstPath + "/" + mCurName);
             if(file.isDirectory()){
                 if(!dstFile.mkdirs()) {
-                    Log.d(TAG, "mkdir: " + dstFile.toString() + " failed!");
-                    return ERROR_CODE_MKDIR_ERROR;
+                    errorInfo.mErrorCode = ERROR_CODE_MKDIR_ERROR;
+                    break;
                 }
-                ret = copyDirectory(file.toString(), dstFile.toString());
-                if(ERROR_CODE_SUCCESS != ret){
+                errorInfo = copyDirectory(file.toString(), dstFile.toString());
+                //复制过程中发生错误，立刻退出
+                if(errorInfo.mErrorCode != ERROR_CODE_SUCCESS){
                     break;
                 }
             }else{
-                ret = copyFile(file, dstFile);
-                if(ERROR_CODE_SUCCESS != ret){
+                errorInfo = copyFile(file, dstFile);
+                //复制过程中发生错误，立刻退出
+                if(errorInfo.mErrorCode != ERROR_CODE_SUCCESS){
                     break;
                 }
             }
         }
 
-        return ret;
-    }
-
-    private int deleteFolder(File path){
-        if (path == null || !path.exists() || !path.isDirectory())
-            return ERROR_CODE_PARAMS_ERROR;
-        for (File file : path.listFiles()) {
-            if (file.isFile()) {
-                if(!file.delete()){
-                    return ERROR_CODE_DELETE_FILE_FAIL;
-                }
-            }else {
-                deleteFolder(file);
-            }
-        }
-        // 删除目录本身
-        if(!path.delete()){
-            return ERROR_CODE_DELETE_FOLDER_FAIL;
-        }
-        return ERROR_CODE_SUCCESS;
+        return errorInfo;
     }
 }
