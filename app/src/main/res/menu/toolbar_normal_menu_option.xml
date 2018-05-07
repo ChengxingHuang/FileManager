@@ -20,14 +20,14 @@
     <item
         android:id="@+id/sort_by"
         android:title="@string/sort_by"
-        android:icon="@drawable/action_paste"
+        android:icon="@drawable/action_sort_by"
         android:visible="true"
         app:showAsAction="ifRoom"/>
 
     <item
         android:id="@+id/directory_sort_mode"
         android:title="@string/directory_sort_mode"
-        android:icon="@drawable/action_paste"
+        android:icon="@drawable/action_sort_mode"
         android:visible="true"
         app:showAsAction="ifRoom"/>
 
