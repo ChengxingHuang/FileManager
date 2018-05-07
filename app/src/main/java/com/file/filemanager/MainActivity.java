@@ -34,10 +34,13 @@ import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,7 +48,6 @@ import com.file.filemanager.Service.FileManagerService;
 import com.file.filemanager.Service.FileOperator;
 import com.file.filemanager.Service.FileOperatorListener;
 import com.file.filemanager.Task.TaskInfo;
-import com.file.filemanager.Task.PasteTask;
 import com.file.filemanager.Task.SearchTask;
 import com.file.filemanager.Utils.OtherUtils;
 import com.file.filemanager.Utils.PreferenceUtils;
@@ -143,6 +145,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mFloatingActionButton = (FloatingActionButton)findViewById(R.id.floatingActionButton);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LayoutInflater inflater = LayoutInflater.from(mContext);
+                View view = inflater.inflate(R.layout.new_folder_dialog, null);
+                final EditText nameEdit = (EditText)view.findViewById(R.id.name);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mContext, R.style.AlertDialogCustom));
+                builder.setTitle(R.string.create_folder);
+                builder.setView(view);
+                builder.setNegativeButton(android.R.string.cancel, null);
+                builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dialog, int which){
+                        String path = mAdapter.getCurPath() + File.separator + nameEdit.getEditableText().toString();
+                        mFileOperator.createFolder(path, new CreateFolderOperationListener());
+                    }
+                });
+
+                AlertDialog dialog = builder.create();
+                //以下两句用来打开AlertDialog时直接打开软键盘
+                dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+                dialog.show();
+            }
+        });
     }
 
     @Override
@@ -321,8 +349,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public FloatingActionButton getFab(){
-        return mFloatingActionButton;
+    public void setFloatActionButtonVisibility(int visibility){
+        mFloatingActionButton.setVisibility(visibility);
     }
 
     public void setCallBack(MainActivityCallBack callBack){
@@ -557,13 +585,44 @@ public class MainActivity extends AppCompatActivity {
                 //创建文件夹失败
                 case ERROR_CODE_MKDIR_ERROR:
                     Log.d(TAG, "mkdir fail when copy file:" + errorInfo.mErrorPath);
-                    showErrorAlert(getString(R.string.create_folder_unknown_error_tips), errorInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.create_folder_error), errorInfo.mErrorPath);
                     break;
 
                 //源文件不存在
                 case ERROR_CODE_FILE_NOT_EXIST:
                     Log.d(TAG, "Copy source file not exist:" + errorInfo.mErrorPath);
                     showErrorAlert(getString(R.string.file_not_exist), errorInfo.mErrorPath);
+                    break;
+            }
+        }
+    }
+
+    //新建文件夹操作
+    class CreateFolderOperationListener implements FileOperatorListener{
+
+        @Override
+        public void onTaskPrepare() {
+
+        }
+
+        @Override
+        public void onTaskProgress(TaskInfo progressInfo) {
+
+        }
+
+        @Override
+        public void onTaskResult(TaskInfo.ErrorInfo errorInfo) {
+            switch (errorInfo.mErrorCode){
+                case ERROR_CODE_FILE_EXIST:
+                    Toast.makeText(MainActivity.this, R.string.folder_exist, Toast.LENGTH_SHORT).show();
+                    break;
+
+                case ERROR_CODE_SUCCESS:
+                    mAdapter.updateCurrentList();
+                    break;
+
+                case ERROR_CODE_MKDIR_ERROR:
+                    Toast.makeText(MainActivity.this, R.string.create_folder_error, Toast.LENGTH_SHORT).show();
                     break;
             }
         }

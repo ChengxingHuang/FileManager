@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -65,9 +64,9 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         super.setPrimaryItem(container, position, object);
         mCurrentFragment = (Fragment) object;
         if(mCurrentFragment == mListFragment){
-            mMainActivity.getFab().setVisibility(View.VISIBLE);
+            mMainActivity.setFloatActionButtonVisibility(View.VISIBLE);
         }else{
-            mMainActivity.getFab().setVisibility(View.GONE);
+            mMainActivity.setFloatActionButtonVisibility(View.GONE);
         }
     }
 

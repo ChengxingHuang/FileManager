@@ -6,6 +6,7 @@ import android.os.Binder;
 import android.os.IBinder;
 
 import com.file.filemanager.Task.BaseAsyncTask;
+import com.file.filemanager.Task.CreateFolderTask;
 import com.file.filemanager.Task.DeleteTask;
 import com.file.filemanager.Task.PasteTask;
 
@@ -32,7 +33,8 @@ public class FileManagerService extends Service {
 
         @Override
         public void createFolder(String newFilePath, FileOperatorListener listener) {
-
+            BaseAsyncTask task = new CreateFolderTask(newFilePath, listener);
+            task.execute();
         }
 
         @Override
