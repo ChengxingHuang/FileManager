@@ -56,6 +56,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_DELETE_FAIL;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_DELETE_NO_PERMISSION;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_FILE_EXIST;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_FILE_NOT_EXIST;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_MKDIR_ERROR;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_SUCCESS;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_USER_CANCEL;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
@@ -508,20 +516,20 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onTaskResult(TaskInfo.ErrorInfo errorInfo) {
-            switch(errorInfo.mErrorCode){
+        public void onTaskResult(TaskInfo taskInfo) {
+            switch(taskInfo.mErrorCode){
                 case ERROR_CODE_DELETE_NO_PERMISSION:
-                    Log.d(TAG, "No delete permission:" + errorInfo.mErrorPath);
-                    showErrorAlert(getString(R.string.delete_no_permission), errorInfo.mErrorPath);
+                    Log.d(TAG, "No delete permission:" + taskInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.delete_no_permission), taskInfo.mErrorPath);
                     break;
 
                 case ERROR_CODE_DELETE_FAIL:
-                    Log.d(TAG, "Delete fail:" + errorInfo.mErrorPath);
-                    showErrorAlert(getString(R.string.delete_fail), errorInfo.mErrorPath);
+                    Log.d(TAG, "Delete fail:" + taskInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.delete_fail), taskInfo.mErrorPath);
                     break;
 
                 case ERROR_CODE_FILE_NOT_EXIST:
-                    showErrorAlert(getString(R.string.file_not_exist), errorInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.file_not_exist), taskInfo.mErrorPath);
                     break;
 
                 case ERROR_CODE_SUCCESS:
@@ -563,9 +571,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onTaskResult(TaskInfo.ErrorInfo errorInfo) {
+        public void onTaskResult(TaskInfo taskInfo) {
             mCopyProcessDialog.dismiss();
-            switch(errorInfo.mErrorCode){
+            switch(taskInfo.mErrorCode){
                 //黏贴成功，如果是剪切，需要删除源文件
                 case ERROR_CODE_SUCCESS:
                     if(mIsCut){
@@ -577,21 +585,21 @@ public class MainActivity extends AppCompatActivity {
                 //用户取消黏贴，删除正在黏贴的部分
                 case ERROR_CODE_USER_CANCEL:
                     List<String> list = new ArrayList<>();
-                    list.add(errorInfo.mErrorPath);
+                    list.add(taskInfo.mErrorPath);
                     mFileOperator.deleteFile(list, new DeleteOperationListener());
                     mAdapter.updateCurrentList();
                     break;
 
                 //创建文件夹失败
                 case ERROR_CODE_MKDIR_ERROR:
-                    Log.d(TAG, "mkdir fail when copy file:" + errorInfo.mErrorPath);
-                    showErrorAlert(getString(R.string.create_folder_error), errorInfo.mErrorPath);
+                    Log.d(TAG, "mkdir fail when copy file:" + taskInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.create_folder_error), taskInfo.mErrorPath);
                     break;
 
                 //源文件不存在
                 case ERROR_CODE_FILE_NOT_EXIST:
-                    Log.d(TAG, "Copy source file not exist:" + errorInfo.mErrorPath);
-                    showErrorAlert(getString(R.string.file_not_exist), errorInfo.mErrorPath);
+                    Log.d(TAG, "Copy source file not exist:" + taskInfo.mErrorPath);
+                    showErrorAlert(getString(R.string.file_not_exist), taskInfo.mErrorPath);
                     break;
             }
         }
@@ -611,8 +619,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onTaskResult(TaskInfo.ErrorInfo errorInfo) {
-            switch (errorInfo.mErrorCode){
+        public void onTaskResult(TaskInfo taskInfo) {
+            switch (taskInfo.mErrorCode){
                 case ERROR_CODE_FILE_EXIST:
                     Toast.makeText(MainActivity.this, R.string.folder_exist, Toast.LENGTH_SHORT).show();
                     break;

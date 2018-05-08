@@ -7,11 +7,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.List;
 
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_FILE_NOT_EXIST;
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_MKDIR_ERROR;
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_SUCCESS;
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_USER_CANCEL;
-
 /**
  * Created by huang on 2018/3/4.
  */
@@ -34,21 +29,19 @@ public class PasteTask extends BaseAsyncTask {
     }
 
     @Override
-    protected TaskInfo.ErrorInfo doInBackground(Void... params) {
-        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
-
+    protected TaskInfo doInBackground(Void... params) {
         for(String copySrcPath : mCopySrcPaths) {
-            errorInfo.mErrorPath = copySrcPath;
+            mTaskInfo.mErrorPath = copySrcPath;
             File srcFile = new File(copySrcPath);
 
             if (!srcFile.exists()) {
-                errorInfo.mErrorCode = ERROR_CODE_FILE_NOT_EXIST;
+                mTaskInfo.mErrorCode = ERROR_CODE_FILE_NOT_EXIST;
                 break;
             }
 
             if (srcFile.isDirectory()) {
                 //copy文件夹
-                errorInfo = copyDirectory(copySrcPath, mCopyDstPath);
+                copyDirectory(copySrcPath, mCopyDstPath);
             } else {
                 //copy文件
                 String[] tmp = copySrcPath.split("/");
@@ -66,11 +59,11 @@ public class PasteTask extends BaseAsyncTask {
                         //需要提示框，按照提示框操作
                     }
                 }
-                errorInfo = copyFile(srcFile, dstFile);
+                copyFile(srcFile, dstFile);
             }
         }
 
-        return errorInfo;
+        return mTaskInfo;
     }
 
     private String reName(int index){
@@ -82,8 +75,7 @@ public class PasteTask extends BaseAsyncTask {
         return newName;
     }
 
-    private TaskInfo.ErrorInfo copyFile(File srcFile, File dstFile){
-        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
+    private void copyFile(File srcFile, File dstFile){
         FileInputStream ins = null;
         FileOutputStream fos = null;
 
@@ -92,13 +84,14 @@ public class PasteTask extends BaseAsyncTask {
             byte[] buffer = new byte[BUFFER_SIZE];
             ins = new FileInputStream(srcFile);
             fos = new FileOutputStream(dstFile);
+            mTaskInfo.mErrorCode = ERROR_CODE_SUCCESS;
 
             while (-1 != (readBuffer = ins.read(buffer))) {
                 //用户取消黏贴
                 if(isCancelled()) {
-                    errorInfo.mErrorCode = ERROR_CODE_USER_CANCEL;
-                    errorInfo.mErrorPath = dstFile.toString();
-                    return errorInfo;
+                    mTaskInfo.mErrorCode = ERROR_CODE_USER_CANCEL;
+                    mTaskInfo.mErrorPath = dstFile.toString();
+                    return;
                 }
                 fos.write(buffer, 0, readBuffer);
 
@@ -125,13 +118,9 @@ public class PasteTask extends BaseAsyncTask {
                 e.printStackTrace();
             }
         }
-
-        errorInfo.mErrorCode = ERROR_CODE_SUCCESS;
-        return errorInfo;
     }
 
-    private TaskInfo.ErrorInfo copyDirectory(String srcPath, String dstPath){
-        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
+    private void copyDirectory(String srcPath, String dstPath){
         File srcFile = new File(srcPath);
         File[] files = srcFile.listFiles();
 
@@ -140,9 +129,9 @@ public class PasteTask extends BaseAsyncTask {
         dstPath = dstPath + "/" + dirName;
         File dstFolder = new File(dstPath);
         if(!dstFolder.mkdirs()) {
-            errorInfo.mErrorPath = dstPath;
-            errorInfo.mErrorCode = ERROR_CODE_MKDIR_ERROR;
-            return errorInfo;
+            mTaskInfo.mErrorPath = dstPath;
+            mTaskInfo.mErrorCode = ERROR_CODE_MKDIR_ERROR;
+            return;
         }
 
         for(File file : files){
@@ -151,23 +140,21 @@ public class PasteTask extends BaseAsyncTask {
             File dstFile = new File(dstPath + "/" + mCurName);
             if(file.isDirectory()){
                 if(!dstFile.mkdirs()) {
-                    errorInfo.mErrorCode = ERROR_CODE_MKDIR_ERROR;
+                    mTaskInfo.mErrorCode = ERROR_CODE_MKDIR_ERROR;
                     break;
                 }
-                errorInfo = copyDirectory(file.toString(), dstFile.toString());
+                copyDirectory(file.toString(), dstFile.toString());
                 //复制过程中发生错误，立刻退出
-                if(errorInfo.mErrorCode != ERROR_CODE_SUCCESS){
+                if(mTaskInfo.mErrorCode != ERROR_CODE_SUCCESS){
                     break;
                 }
             }else{
-                errorInfo = copyFile(file, dstFile);
+                copyFile(file, dstFile);
                 //复制过程中发生错误，立刻退出
-                if(errorInfo.mErrorCode != ERROR_CODE_SUCCESS){
+                if(mTaskInfo.mErrorCode != ERROR_CODE_SUCCESS){
                     break;
                 }
             }
         }
-
-        return errorInfo;
     }
 }

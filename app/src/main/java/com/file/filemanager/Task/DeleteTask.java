@@ -5,63 +5,58 @@ import com.file.filemanager.Service.FileOperatorListener;
 import java.io.File;
 import java.util.List;
 
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_DELETE_FAIL;
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_FILE_NOT_EXIST;
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_DELETE_NO_PERMISSION;
-import static com.file.filemanager.Service.FileOperatorListener.ERROR_CODE_SUCCESS;
-
 /**
  * Created by huang on 2018/3/12.
  */
 
 public class DeleteTask extends BaseAsyncTask {
     private List<String> mDeletePaths;
+    private TaskInfo mTaskInfo;
 
     public DeleteTask(List<String> deletePaths, FileOperatorListener listener){
         super(listener);
         mDeletePaths = deletePaths;
+        mTaskInfo = new TaskInfo();
     }
 
     @Override
-    protected TaskInfo.ErrorInfo doInBackground(Void... voids) {
-        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
+    protected TaskInfo doInBackground(Void... voids) {
         for(int i = 0; i < mDeletePaths.size(); i++) {
             String deletePath = mDeletePaths.get(i);
             File deleteFile = new File(deletePath);
-            errorInfo.mErrorPath = deletePath;
+            mTaskInfo.mErrorPath = deletePath;
 
             if (!deleteFile.exists()) {
-                errorInfo.mErrorCode = ERROR_CODE_FILE_NOT_EXIST;
-                return errorInfo;
+                mTaskInfo.mErrorCode = ERROR_CODE_FILE_NOT_EXIST;
+                return mTaskInfo;
             }
 
             if (deleteFile.isDirectory()) {
-                return deleteFolder(deleteFile);
+                deleteFolder(deleteFile);
             } else {
                 if (!deleteFile.delete()) {
-                    errorInfo.mErrorCode = ERROR_CODE_DELETE_FAIL;
-                    return errorInfo;
+                    mTaskInfo.mErrorCode = ERROR_CODE_DELETE_FAIL;
+                    return mTaskInfo;
                 }
             }
         }
 
-        errorInfo.mErrorCode = ERROR_CODE_SUCCESS;
-        return errorInfo;
+        mTaskInfo.mErrorCode = ERROR_CODE_SUCCESS;
+        return mTaskInfo;
     }
 
-    private TaskInfo.ErrorInfo deleteFolder(File path){
-        TaskInfo.ErrorInfo errorInfo = new TaskInfo.ErrorInfo();
+    private void deleteFolder(File path){
         for (File file : path.listFiles()) {
             if (file.isFile()) {
-                errorInfo.mErrorPath = path.toString();
+                mTaskInfo.mErrorPath = path.toString();
                 if (!file.canWrite()) {
-                    errorInfo.mErrorCode = ERROR_CODE_DELETE_NO_PERMISSION;
-                    return errorInfo;
+                    mTaskInfo.mErrorCode = ERROR_CODE_DELETE_NO_PERMISSION;
+                    return;
                 }
 
                 if(!file.delete()){
-                    errorInfo.mErrorCode = ERROR_CODE_DELETE_FAIL;
-                    return errorInfo;
+                    mTaskInfo.mErrorCode = ERROR_CODE_DELETE_FAIL;
+                    return;
                 }
             }else {
                 deleteFolder(file);
@@ -69,12 +64,11 @@ public class DeleteTask extends BaseAsyncTask {
         }
         // 删除目录本身
         if(!path.delete()){
-            errorInfo.mErrorPath = path.toString();
-            errorInfo.mErrorCode = ERROR_CODE_DELETE_FAIL;
-            return errorInfo;
+            mTaskInfo.mErrorPath = path.toString();
+            mTaskInfo.mErrorCode = ERROR_CODE_DELETE_FAIL;
+            return;
         }
 
-        errorInfo.mErrorCode = ERROR_CODE_SUCCESS;
-        return errorInfo;
+        mTaskInfo.mErrorCode = ERROR_CODE_SUCCESS;
     }
 }

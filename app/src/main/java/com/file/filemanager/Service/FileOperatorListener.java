@@ -7,15 +7,7 @@ import com.file.filemanager.Task.TaskInfo;
  */
 
 public interface FileOperatorListener {
-    int ERROR_CODE_SUCCESS = 0x00;
-    int ERROR_CODE_USER_CANCEL = 0x01;
-    int ERROR_CODE_FILE_NOT_EXIST = 0x02;
-    int ERROR_CODE_DELETE_FAIL = 0x03;
-    int ERROR_CODE_DELETE_NO_PERMISSION = 0x04;
-    int ERROR_CODE_MKDIR_ERROR = 0x07;
-    int ERROR_CODE_FILE_EXIST = 0x08;
-
     void onTaskPrepare();
-    void onTaskProgress(TaskInfo progressInfo);
-    void onTaskResult(TaskInfo.ErrorInfo errorInfo);
+    void onTaskProgress(TaskInfo taskInfo);
+    void onTaskResult(TaskInfo taskInfo);
 }

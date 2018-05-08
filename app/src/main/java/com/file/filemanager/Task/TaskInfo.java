@@ -1,5 +1,9 @@
 package com.file.filemanager.Task;
 
+import com.file.filemanager.FileInfo;
+
+import java.util.List;
+
 /**
  * Created by huang on 2018/4/1.
  */
@@ -9,6 +13,10 @@ public class TaskInfo {
     private long mStartOperationTime = 0;
     private long mProgressSize = 0;
     private String mCurName;
+    private List<FileInfo> mFileInfoList;
+
+    public int mErrorCode;
+    public String mErrorPath;
 
     public TaskInfo() {
         mStartOperationTime = System.currentTimeMillis();
@@ -40,8 +48,11 @@ public class TaskInfo {
         return false;
     }
 
-    public static class ErrorInfo{
-        public int mErrorCode;
-        public String mErrorPath;
+    public void setFileInfoList(List<FileInfo> fileInfoList){
+        mFileInfoList = fileInfoList;
+    }
+
+    public List<FileInfo> getFileInfoList(){
+        return mFileInfoList;
     }
 }
