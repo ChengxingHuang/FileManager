@@ -110,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
         mServiceConnection = new FileServiceConnection();
         Intent intent = new Intent(this, FileManagerService.class);
         bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
-
         requestPermission();
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_main);
@@ -179,6 +178,12 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mServiceConnection);
     }
 
     @Override
@@ -369,6 +374,10 @@ public class MainActivity extends AppCompatActivity {
         mFileOperator.deleteFile(paths, new DeleteOperationListener());
     }
 
+    public void showFiles(String path, FileOperatorListener listener){
+        mFileOperator.showFile(path, listener);
+    }
+
     public interface MainActivityCallBack{
         void cleanCheck();
     }
@@ -494,6 +503,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mFileOperator = (FileOperator)service;
+            mAdapter.showRootPathList();
         }
 
         @Override

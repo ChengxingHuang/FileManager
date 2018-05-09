@@ -70,6 +70,10 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         }
     }
 
+    public void showRootPathList(){
+        mListFragment.showRootPathList();
+    }
+
     public void updateCurrentList(){
         if(mCurrentFragment == mListFragment){
             mListFragment.updateCurrentList();

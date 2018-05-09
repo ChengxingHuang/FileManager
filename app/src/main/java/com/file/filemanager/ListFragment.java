@@ -1,6 +1,5 @@
 package com.file.filemanager;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,26 +9,29 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.file.filemanager.Task.CreateFolderTask;
-import com.file.filemanager.Task.ShowFilesTask;
+import com.file.filemanager.Service.FileOperatorListener;
+import com.file.filemanager.Task.TaskInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_EMPTY_FOLDER;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_SUCCESS;
+
 public class ListFragment extends Fragment {
 
     public static final String TAG = "ListFragment";
 
-    private List<FileInfo> mFileList = new ArrayList<FileInfo>();
-    private List<StorageInfo> mStorageList = new ArrayList<StorageInfo>();
-    private List<LastPosition> mLastPositionList = new ArrayList<LastPosition>();
+    private List<FileInfo> mFileList = new ArrayList<>();
+    private List<StorageInfo> mStorageList = new ArrayList<>();
+    private List<LastPosition> mLastPositionList = new ArrayList<>();
     private List<MountStorageManager.MountStorage> mMountStorageList;
 
     private FileListAdapter mFileListAdapter;
-    private StorageListAdapter mStorageListAdapter;
 
     private MainActivity mMainActivity;
     private RecyclerView mRecyclerView;
@@ -39,9 +41,6 @@ public class ListFragment extends Fragment {
     private String mRootPath;
     private boolean mIsStorageList = false;
     private boolean mIsShowSearchList = false;
-
-    private CreateFolderTask mCreateFolderTask;
-    private ShowFilesTask mShowFilesTask;
 
     public ListFragment() {
     }
@@ -80,24 +79,13 @@ public class ListFragment extends Fragment {
         mMountStorageList = MountStorageManager.getInstance().getMountStorageList();
         Log.d(TAG, "Storage Count = " + mMountStorageList.size());
 
-        if(1 == mMountStorageList.size()){
-            //显示file list
-            mRootPath = mMountStorageList.get(0).mPath;
-            showAbsolutePathFiles(mRootPath);
-        }else if(mMountStorageList.size() > 1){
-            //显示storage list
-            showStorageList();
-        }else {
-            // TODO: 2017/9/22 没有存储的情况 
-        }
-
         return v;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        updateCurrentList();
+        //updateCurrentList();
         // TODO: 2017/12/4 设置完排序方式后mLastPositionList需要被清空
     }
 
@@ -140,8 +128,8 @@ public class ListFragment extends Fragment {
             }
         }
 
-        mStorageListAdapter = new StorageListAdapter(mMainActivity, mStorageList, this);
-        mRecyclerView.setAdapter(mStorageListAdapter);
+        StorageListAdapter storageListAdapter = new StorageListAdapter(mMainActivity, mStorageList, this);
+        mRecyclerView.setAdapter(storageListAdapter);
     }
 
     //显示指定路径列表
@@ -159,6 +147,19 @@ public class ListFragment extends Fragment {
     public void showRootPathList(String rootPath){
         showAbsolutePathFiles(rootPath);
         mRootPath = rootPath;
+    }
+
+    public void showRootPathList(){
+        if(1 == mMountStorageList.size()){
+            //显示file list
+            showRootPathList(mMountStorageList.get(0).mPath);
+        }else if(mMountStorageList.size() > 1){
+            //显示storage list
+            showStorageList();
+        }else {
+            //没有storage的情况
+            Toast.makeText(mMainActivity, R.string.no_storage, Toast.LENGTH_SHORT).show();
+        }
     }
 
     public boolean onBackPressed(){
@@ -204,43 +205,7 @@ public class ListFragment extends Fragment {
     }
 
     public void updateCurrentList(){
-        if(null != mShowFilesTask && mShowFilesTask.getStatus() == AsyncTask.Status.RUNNING){
-            mShowFilesTask.cancel(true);
-        }
-
-        mShowFilesTask = new ShowFilesTask(mMainActivity, mCurPath);
-        mShowFilesTask.execute(mFileList);
-        mShowFilesTask.setShowListFinish(new ShowFilesTask.ShowListFinish() {
-            @Override
-            public void showNormalPath() {
-                Collections.sort(mFileList, new FileInfo.NameComparator(mMainActivity));
-                scrollToPosition();
-
-                if(null != mFileListAdapter) {
-                    mFileListAdapter.notifyDataSetChanged();
-                }else {
-                    mFileListAdapter = new FileListAdapter(mMainActivity, mFileList, ListFragment.this);
-                    mRecyclerView.setAdapter(mFileListAdapter);
-                }
-            }
-
-            @Override
-            public void showEmptyPath() {
-                mRecyclerView.setVisibility(View.GONE);
-                mEmptyText.setVisibility(View.VISIBLE);
-                mEmptyText.setText(mCurPath + " " + mMainActivity.getString(R.string.is_empty));
-
-                LastPosition pos = new LastPosition();
-                pos.mLastPosition = -1;
-                pos.mLastTopOffset = -1;
-                mLastPositionList.add(pos);
-            }
-
-            @Override
-            public void enterWrongPath() {
-
-            }
-        });
+        mMainActivity.showFiles(mCurPath, new ShowFilesOperationListener());
     }
 
     public void updateSearchList(ArrayList<FileInfo> list){
@@ -263,5 +228,52 @@ public class ListFragment extends Fragment {
         mLastPositionList.add(pos);
 
         mIsShowSearchList = true;
+    }
+
+    //显示目录操作
+    class ShowFilesOperationListener implements FileOperatorListener {
+
+        @Override
+        public void onTaskPrepare() {
+
+        }
+
+        @Override
+        public void onTaskProgress(TaskInfo progressInfo) {
+
+        }
+
+        @Override
+        public void onTaskResult(TaskInfo taskInfo) {
+            switch (taskInfo.mErrorCode){
+                case ERROR_CODE_EMPTY_FOLDER:
+                    mRecyclerView.setVisibility(View.GONE);
+                    mEmptyText.setVisibility(View.VISIBLE);
+                    mEmptyText.setText(mCurPath + " " + mMainActivity.getString(R.string.is_empty));
+
+                    LastPosition pos = new LastPosition();
+                    pos.mLastPosition = -1;
+                    pos.mLastTopOffset = -1;
+                    mLastPositionList.add(pos);
+                    break;
+
+                case ERROR_CODE_SUCCESS:
+                    mFileList.clear();
+                    for(FileInfo fileInfo : taskInfo.getFileInfoList()){
+                        mFileList.add(fileInfo);
+                    }
+
+                    Collections.sort(mFileList, new FileInfo.NameComparator(mMainActivity));
+                    scrollToPosition();
+
+                    if(null != mFileListAdapter) {
+                        mFileListAdapter.notifyDataSetChanged();
+                    }else {
+                        mFileListAdapter = new FileListAdapter(mMainActivity, mFileList, ListFragment.this);
+                        mRecyclerView.setAdapter(mFileListAdapter);
+                    }
+                    break;
+            }
+        }
     }
 }

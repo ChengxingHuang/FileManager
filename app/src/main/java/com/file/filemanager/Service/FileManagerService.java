@@ -9,6 +9,7 @@ import com.file.filemanager.Task.BaseAsyncTask;
 import com.file.filemanager.Task.CreateFolderTask;
 import com.file.filemanager.Task.DeleteTask;
 import com.file.filemanager.Task.PasteTask;
+import com.file.filemanager.Task.ShowFilesTask;
 
 import java.util.List;
 
@@ -39,7 +40,8 @@ public class FileManagerService extends Service {
 
         @Override
         public void showFile(String filePath, FileOperatorListener listener) {
-
+            BaseAsyncTask task = new ShowFilesTask(FileManagerService.this, filePath, listener);
+            task.execute();
         }
 
         @Override

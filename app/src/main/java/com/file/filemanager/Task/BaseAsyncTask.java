@@ -20,6 +20,7 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
     public static final int ERROR_CODE_DELETE_NO_PERMISSION = 0x04;
     public static final int ERROR_CODE_MKDIR_ERROR = 0x07;
     public static final int ERROR_CODE_FILE_EXIST = 0x08;
+    public static final int ERROR_CODE_EMPTY_FOLDER = 0x09;
 
     private FileOperatorListener mListener;
     protected List<FileInfo> mFileInfoList;
