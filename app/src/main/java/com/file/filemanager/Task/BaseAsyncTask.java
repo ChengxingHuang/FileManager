@@ -23,7 +23,6 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
     public static final int ERROR_CODE_EMPTY_FOLDER = 0x09;
 
     private FileOperatorListener mListener;
-    protected List<FileInfo> mFileInfoList;
 
     public BaseAsyncTask(FileOperatorListener listener){
         mListener = listener;
@@ -49,7 +48,6 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
     protected void onPostExecute(TaskInfo taskInfo) {
         super.onPostExecute(taskInfo);
         if(null != mListener){
-            taskInfo.setFileInfoList(mFileInfoList);
             mListener.onTaskResult(taskInfo);
         }
     }

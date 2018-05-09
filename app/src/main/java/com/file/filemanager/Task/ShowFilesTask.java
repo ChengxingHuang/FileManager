@@ -30,7 +30,6 @@ public class ShowFilesTask extends BaseAsyncTask {
         String fileArray[] = new File(mPath).list();
         mTaskInfo.mErrorPath = mPath;
         mTaskInfo.mErrorCode = ERROR_CODE_SUCCESS;
-        mFileInfoList = new ArrayList<>();
 
         if(null != fileArray && fileArray.length > 0) {
             for(String path : fileArray){
@@ -40,7 +39,8 @@ public class ShowFilesTask extends BaseAsyncTask {
                 if (!canShowHideFile && fileInfo.isHideFileType()) {
                     continue;
                 }
-                mFileInfoList.add(fileInfo);
+                mTaskInfo.setFileInfo(fileInfo);
+                publishProgress(mTaskInfo);
             }
         }else{
             mTaskInfo.mErrorCode = ERROR_CODE_EMPTY_FOLDER;

@@ -13,10 +13,10 @@ public class TaskInfo {
     private long mStartOperationTime = 0;
     private long mProgressSize = 0;
     private String mCurName;
-    private List<FileInfo> mFileInfoList;
 
     public int mErrorCode;
     public String mErrorPath;
+    public FileInfo mFileInfo;
 
     public TaskInfo() {
         mStartOperationTime = System.currentTimeMillis();
@@ -48,11 +48,11 @@ public class TaskInfo {
         return false;
     }
 
-    public void setFileInfoList(List<FileInfo> fileInfoList){
-        mFileInfoList = fileInfoList;
+    public void setFileInfo(FileInfo fileInfo){
+        mFileInfo = fileInfo;
     }
 
-    public List<FileInfo> getFileInfoList(){
-        return mFileInfoList;
+    public FileInfo getFileInfo(){
+        return mFileInfo;
     }
 }

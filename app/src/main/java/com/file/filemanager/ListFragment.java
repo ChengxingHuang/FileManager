@@ -235,12 +235,12 @@ public class ListFragment extends Fragment {
 
         @Override
         public void onTaskPrepare() {
-
+            mFileList.clear();
         }
 
         @Override
-        public void onTaskProgress(TaskInfo progressInfo) {
-
+        public void onTaskProgress(TaskInfo taskInfo) {
+            mFileList.add(taskInfo.getFileInfo());
         }
 
         @Override
@@ -258,11 +258,6 @@ public class ListFragment extends Fragment {
                     break;
 
                 case ERROR_CODE_SUCCESS:
-                    mFileList.clear();
-                    for(FileInfo fileInfo : taskInfo.getFileInfoList()){
-                        mFileList.add(fileInfo);
-                    }
-
                     Collections.sort(mFileList, new FileInfo.NameComparator(mMainActivity));
                     scrollToPosition();
 
