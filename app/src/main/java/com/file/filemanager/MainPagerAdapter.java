@@ -10,9 +10,9 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 
 
-public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
+public class MainPagerAdapter extends FragmentPagerAdapter {
 
-    public static final int PAGE_FRAGMENT_COUNT = 2;
+    private static final int PAGE_FRAGMENT_COUNT = 2;
 
     private int[] mTabTitles = {R.string.category_storage, R.string.phone_storage};
     private MainActivity mMainActivity;
@@ -21,20 +21,18 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
     private ListFragment mListFragment;
     private CategoryFragment mCategoryFragment;
 
-    public MyFragmentPagerAdapter(FragmentManager fm, Context context) {
+    public MainPagerAdapter(FragmentManager fm, Context context) {
         super(fm);
         mMainActivity = (MainActivity) context;
+        mCategoryFragment = new CategoryFragment();
+        mListFragment = new ListFragment();
     }
 
     @Override
     public Fragment getItem(int position) {
         if(0 == position) {
-            if(null == mCategoryFragment)
-                mCategoryFragment = new CategoryFragment();
             return mCategoryFragment;
         }else{
-            if(null == mListFragment)
-                mListFragment = new ListFragment();
             return mListFragment;
         }
     }
@@ -49,16 +47,6 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         return mMainActivity.getString(mTabTitles[position]);
     }
 
-    public boolean onBackPressed(){
-        if(mCurrentFragment == mListFragment){
-            return mListFragment.onBackPressed();
-        }else if(mCurrentFragment == mCategoryFragment){
-            return mCategoryFragment.onBackPressed();
-        }else{
-            return false;
-        }
-    }
-
     @Override
     public void setPrimaryItem(ViewGroup container, int position, Object object){
         super.setPrimaryItem(container, position, object);
@@ -67,6 +55,16 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
             mMainActivity.setFloatActionButtonVisibility(View.VISIBLE);
         }else{
             mMainActivity.setFloatActionButtonVisibility(View.GONE);
+        }
+    }
+
+    public boolean onBackPressed(){
+        if(mCurrentFragment == mListFragment){
+            return mListFragment.onBackPressed();
+        }else if(mCurrentFragment == mCategoryFragment){
+            return mCategoryFragment.onBackPressed();
+        }else{
+            return false;
         }
     }
 

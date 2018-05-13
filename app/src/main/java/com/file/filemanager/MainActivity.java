@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
     private AlertDialog.Builder mDialogBuilder;
     private ServiceConnection mServiceConnection;
 
-    private MyFragmentPagerAdapter mAdapter;
+    private MainPagerAdapter mAdapter;
     private MainActivityCallBack mCallBack;
     private SQLiteDatabase mFavoriteDB;
     private Context mContext;
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         toggle.syncState();
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.pager_main);
-        mAdapter = new MyFragmentPagerAdapter(getSupportFragmentManager(), this);
+        mAdapter = new MainPagerAdapter(getSupportFragmentManager(), this);
         viewPager.setAdapter(mAdapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tab_main);
