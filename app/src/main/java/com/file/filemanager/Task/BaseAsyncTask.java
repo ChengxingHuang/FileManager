@@ -2,7 +2,6 @@ package com.file.filemanager.Task;
 
 import android.os.AsyncTask;
 
-import com.file.filemanager.FileInfo;
 import com.file.filemanager.Service.FileOperatorListener;
 
 import java.util.List;
@@ -32,7 +31,6 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
 
     @Override
     protected void onPreExecute() {
-        super.onPreExecute();
         if(null != mListener){
             mListener.onTaskPrepare();
         }
@@ -40,7 +38,6 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
 
     @Override
     protected void onProgressUpdate(TaskInfo... values) {
-        super.onProgressUpdate(values);
         if(null != values && null != values[0] && null != mListener){
             mListener.onTaskProgress(values[0]);
         }
@@ -48,7 +45,6 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
 
     @Override
     protected void onPostExecute(TaskInfo taskInfo) {
-        super.onPostExecute(taskInfo);
         if(null != mListener){
             mListener.onTaskResult(taskInfo);
         }
@@ -56,7 +52,6 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
 
     @Override
     protected void onCancelled(TaskInfo taskInfo) {
-        super.onCancelled(taskInfo);
         if(null != mListener){
             mListener.onTaskResult(taskInfo);
             mListener = null;

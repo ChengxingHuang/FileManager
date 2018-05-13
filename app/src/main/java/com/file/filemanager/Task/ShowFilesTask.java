@@ -7,7 +7,6 @@ import com.file.filemanager.Service.FileOperatorListener;
 import com.file.filemanager.Utils.PreferenceUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  * Created by huang on 2018/1/22.
@@ -39,8 +38,10 @@ public class ShowFilesTask extends BaseAsyncTask {
                 if (!canShowHideFile && fileInfo.isHideFileType()) {
                     continue;
                 }
-                mTaskInfo.setFileInfo(fileInfo);
-                publishProgress(mTaskInfo);
+                // TODO: 2018/5/13 这边用mTaskInfo会有Bug，没找到原因
+                TaskInfo info = new TaskInfo();
+                info.setFileInfo(fileInfo);
+                publishProgress(info);
             }
         }else{
             mTaskInfo.mErrorCode = ERROR_CODE_EMPTY_FOLDER;
