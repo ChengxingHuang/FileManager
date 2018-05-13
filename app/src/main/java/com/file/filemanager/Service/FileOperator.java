@@ -1,5 +1,7 @@
 package com.file.filemanager.Service;
 
+import android.content.ContentResolver;
+
 import java.util.List;
 
 /**
@@ -14,6 +16,6 @@ public interface FileOperator {
     void createFolder(String newFilePath, FileOperatorListener listener);
     void showFile(String filePath, FileOperatorListener listener);
     void sortFile(FileOperatorListener listener);
-    void searchFile(FileOperatorListener listener);
+    void searchFile(String searchName, String searchPath, ContentResolver resolver, FileOperatorListener listener);
     void cancelTask(int taskId);
 }

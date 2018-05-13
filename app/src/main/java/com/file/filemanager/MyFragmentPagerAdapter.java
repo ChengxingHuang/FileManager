@@ -82,11 +82,21 @@ public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
         }
     }
 
-    public void updateSearchList(ArrayList<FileInfo> list){
+    public void clearFileList(){
         if(mCurrentFragment == mListFragment){
-            mListFragment.updateSearchList(list);
-        }else if(mCurrentFragment == mCategoryFragment){
-            mCategoryFragment.updateSearchList(list);
+            mListFragment.clearFileList();
+        }
+    }
+
+    public void updateFileList(final FileInfo fileInfo){
+        if(mCurrentFragment == mListFragment){
+            mListFragment.updateFileList(fileInfo);
+        }
+    }
+
+    public void showSearchList(){
+        if(mCurrentFragment == mListFragment){
+            mListFragment.showSearchList();
         }
     }
 

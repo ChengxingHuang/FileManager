@@ -1,117 +1,85 @@
 package com.file.filemanager.Task;
 
+import android.content.ContentResolver;
 import android.content.Context;
-import android.os.AsyncTask;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import com.file.filemanager.FileInfo;
-import com.file.filemanager.MountStorageManager;
+import com.file.filemanager.Service.FileOperatorListener;
 import com.file.filemanager.Utils.PreferenceUtils;
-
-import java.io.File;
-import java.util.ArrayList;
 
 /**
  * Created by huang on 2017/12/24.
  */
 
-public class SearchTask extends AsyncTask<String, Void, Void> {
+public class SearchTask extends BaseAsyncTask {
 
-    public static final String TAG = "SearchTask";
+    private static final String TAG = "SearchTask";
+    private final String mSearchName;
+    private final String mSearchPath;
+    private final ContentResolver mContentResolver;
     private Context mContext;
-    private SearchTask.OnSearchFinish mOnSearchFinish;
-    private ArrayList<FileInfo> mSearchSourceList;
-    private ArrayList<FileInfo> mSearchResultList;
+    private TaskInfo mTaskInfo;
 
-    public SearchTask(ArrayList<FileInfo> list, Context context){
-        mSearchSourceList = list;
+    public SearchTask(Context context, String searchName, String searchPath, ContentResolver resolver, FileOperatorListener listener){
+        super(listener);
+        mSearchName = searchName;
+        mSearchPath = searchPath;
+        mContentResolver = resolver;
         mContext = context;
-        mSearchResultList = new ArrayList<>();
-    }
-
-    /*
-    param[0]:搜索路径
-    param[1]:搜索关键字
-     */
-    @Override
-    protected Void doInBackground(String[] params) {
-        if((null == params[0] && null == mSearchSourceList)
-                || PreferenceUtils.getSearchRootValue(mContext)){
-            ArrayList<MountStorageManager.MountStorage> storageList = MountStorageManager.getInstance().getMountStorageList();
-            for(int i = 0; i < storageList.size(); i++){
-                String rootPath = storageList.get(i).mPath;
-                Log.d(TAG, "Search root path = " + rootPath + ", keyWord = " + params[1]);
-                searchByPath(rootPath, params[1]);
-            }
-        } else if(null != params[0] && null != params[1]){
-            Log.d(TAG, "Search path = " + params[0] + ", keyWord = " + params[1]);
-            searchByPath(params[0], params[1]);
-        }else if(null != mSearchSourceList && null != params[1]) {
-            Log.d(TAG, "Search list size = " + mSearchSourceList.size() + ", keyWord = " + params[1]);
-            searchByList(params[1]);
-        }
-        return null;
+        mTaskInfo = new TaskInfo();
+        mTaskInfo.mErrorCode = ERROR_CODE_SUCCESS;
     }
 
     @Override
-    protected void onPostExecute(Void v) {
-        mOnSearchFinish.searchFinish(mSearchResultList);
-    }
+    protected TaskInfo doInBackground(Void... voids) {
+        /*
+        MediaStore.Files.FileColumns.DATA：文件全称，包含路径和后缀
+        MediaStore.Files.FileColumns.TITLE：文件名称，不含路径而且不包含后缀（包括文件夹），从模拟器看来是只截取.前面空格为止，比如a - a.jpg，只有存储a，而不是a - a
+        MediaStore.Files.FileColumns.DISPLAY_NAME：文件名称，不含路径而且必须是包含后缀的文件（不包括文件夹），如果文件没有后缀，不会在这个字段里面
+         */
+        Uri uri = MediaStore.Files.getContentUri("external");
+        String[] projection = { MediaStore.Files.FileColumns.DATA };
+        String[] selectionArgs = { "%" + mSearchName + "%", "%" + mSearchPath + "%"};
 
-    public interface OnSearchFinish{
-        void searchFinish(ArrayList<FileInfo> list);
-    }
-
-    public void setOnSearchFinish(SearchTask.OnSearchFinish onSearchFinish){
-        mOnSearchFinish = onSearchFinish;
-    }
-
-    private void searchByPath(String path, String keyWord){
-        if(null == path){
-            Log.d(TAG, "Please check: searchByPath path is null");
-            return;
+        //判断是否需要全字匹配
+        if(PreferenceUtils.getSearchWholeWordValue(mContext)){
+            selectionArgs[0] = mSearchName;
         }
 
-        FileInfo info = new FileInfo(mContext, path);
-        File[] files = info.getFile().listFiles();
-        for(File file : files){
-            String[] tmp = file.toString().split("/");
-            String fullName = tmp[tmp.length - 1];
-            search(file.toString(), fullName, keyWord);
-
-            if(file.isDirectory()){
-                searchByPath(file.toString(), keyWord);
-            }
+        // TODO: 2018/5/13 模糊匹配和%怎么用的？？？
+        Cursor cursor = mContentResolver.query(uri, projection,
+                MediaStore.Files.FileColumns.TITLE + " like ? and " + MediaStore.Files.FileColumns.DATA + " like ? ",
+                selectionArgs, null);
+        if (cursor == null) {
+            mTaskInfo.mErrorCode = ERROR_CODE_CURSOR_NULL;
+            return mTaskInfo;
+        }else if(0 == cursor.getCount()){
+            mTaskInfo.mErrorCode = ERROR_CODE_NO_MATCH_FILES;
+            return mTaskInfo;
         }
-    }
 
-    private void searchByList(String keyWord){
-        for(int i = 0; i < mSearchSourceList.size(); i++){
-            FileInfo info = mSearchSourceList.get(i);
-            String fullName = info.getFileName();
+        cursor.moveToFirst();
+        try {
+            while (!cursor.isAfterLast()) {
+                if (isCancelled()) {
+                    mTaskInfo.mErrorCode = ERROR_CODE_USER_CANCEL;
+                    return mTaskInfo;
+                }
 
-            search(info.getFileAbsolutePath(), fullName, keyWord);
+                String path = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA));
+                Log.d(TAG, "search path = " + path);
+                mTaskInfo.setFileInfo(new FileInfo(mContext, path));
+                publishProgress(mTaskInfo);
+                cursor.moveToNext();
+            }
+        } finally {
+            cursor.close();
         }
-    }
 
-    private void search(String filePath, String fullName, String keyWord){
-        //全字匹配：需要匹配aaa.jpg和aaa
-        if(PreferenceUtils.getSearchWholeWordValue(mContext)) {
-            String realName = "";
-            if(fullName.contains(".")){
-                int pointLastIndex = fullName.lastIndexOf(".");
-                realName = fullName.substring(0, pointLastIndex);
-            }
-            if (keyWord.equals(realName) || keyWord.equals(fullName)) {
-                FileInfo fileInfo = new FileInfo(mContext, filePath);
-                mSearchResultList.add(fileInfo);
-            }
-        }else {
-            //模糊匹配：名字中包含关键字即可
-            if(fullName.contains(keyWord)){
-                FileInfo fileInfo = new FileInfo(mContext, filePath);
-                mSearchResultList.add(fileInfo);
-            }
-        }
+        return mTaskInfo;
     }
 }

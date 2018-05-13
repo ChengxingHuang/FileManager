@@ -1,6 +1,7 @@
 package com.file.filemanager.Service;
 
 import android.app.Service;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
@@ -9,6 +10,7 @@ import com.file.filemanager.Task.BaseAsyncTask;
 import com.file.filemanager.Task.CreateFolderTask;
 import com.file.filemanager.Task.DeleteTask;
 import com.file.filemanager.Task.PasteTask;
+import com.file.filemanager.Task.SearchTask;
 import com.file.filemanager.Task.ShowFilesTask;
 
 import java.util.List;
@@ -50,8 +52,9 @@ public class FileManagerService extends Service {
         }
 
         @Override
-        public void searchFile(FileOperatorListener listener) {
-
+        public void searchFile(String searchName, String searchPath, ContentResolver resolver, FileOperatorListener listener){
+            BaseAsyncTask task = new SearchTask(FileManagerService.this, searchName, searchPath, resolver, listener);
+            task.execute();
         }
 
         @Override

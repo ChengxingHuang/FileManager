@@ -12,7 +12,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -48,7 +47,6 @@ import com.file.filemanager.Service.FileManagerService;
 import com.file.filemanager.Service.FileOperator;
 import com.file.filemanager.Service.FileOperatorListener;
 import com.file.filemanager.Task.TaskInfo;
-import com.file.filemanager.Task.SearchTask;
 import com.file.filemanager.Utils.OtherUtils;
 import com.file.filemanager.Utils.PreferenceUtils;
 
@@ -86,7 +84,6 @@ public class MainActivity extends AppCompatActivity {
     private MainActivityCallBack mCallBack;
     private SQLiteDatabase mFavoriteDB;
     private Context mContext;
-    private SearchTask mSearchTask;
     private FileOperator mFileOperator;
 
     private List<String> mCopySrcList;
@@ -204,22 +201,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                //要先暂停之前的搜索
-                if((null != mSearchTask) && (mSearchTask.getStatus() == AsyncTask.Status.RUNNING)){
-                    mSearchTask.cancel(true);
-                }
-
                 if(!"".equals(newText)){
                     // 按照路径或分类查找
-                    String[] params = {mAdapter.getCurPath(), newText};
-                    mSearchTask = new SearchTask(mAdapter.getCurCategoryList(), mContext);
-                    mSearchTask.setOnSearchFinish(new SearchTask.OnSearchFinish() {
-                        @Override
-                        public void searchFinish(ArrayList<FileInfo> list) {
-                            mAdapter.updateSearchList(list);
-                        }
-                    });
-                    mSearchTask.execute(params);
+                    mFileOperator.searchFile(newText, mAdapter.getCurPath(), getContentResolver(), new SearchOperationListener());
                 }else{
                     //搜索字串为空，返回搜索前的list
                     mAdapter.backToPreList();
@@ -643,6 +627,24 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, R.string.create_folder_error, Toast.LENGTH_SHORT).show();
                     break;
             }
+        }
+    }
+
+    class SearchOperationListener implements FileOperatorListener{
+
+        @Override
+        public void onTaskPrepare() {
+            mAdapter.clearFileList();
+        }
+
+        @Override
+        public void onTaskProgress(TaskInfo taskInfo) {
+            mAdapter.updateFileList(taskInfo.getFileInfo());
+        }
+
+        @Override
+        public void onTaskResult(TaskInfo taskInfo) {
+            mAdapter.showSearchList();
         }
     }
 }
