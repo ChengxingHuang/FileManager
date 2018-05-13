@@ -54,11 +54,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_CURSOR_NULL;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_DELETE_FAIL;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_DELETE_NO_PERMISSION;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_FILE_EXIST;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_FILE_NOT_EXIST;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_MKDIR_ERROR;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_NO_MATCH_FILES;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_SUCCESS;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_USER_CANCEL;
 
@@ -630,6 +632,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    //搜索操作
     class SearchOperationListener implements FileOperatorListener{
 
         @Override
@@ -644,7 +647,21 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onTaskResult(TaskInfo taskInfo) {
-            mAdapter.showSearchList();
+            switch (taskInfo.mErrorCode){
+                case ERROR_CODE_SUCCESS:
+                    mAdapter.showSearchList();
+                    break;
+
+                case ERROR_CODE_CURSOR_NULL:
+                    break;
+
+                case ERROR_CODE_NO_MATCH_FILES:
+                    Toast.makeText(mContext, R.string.no_match_file, Toast.LENGTH_SHORT).show();
+                    break;
+
+                case ERROR_CODE_USER_CANCEL:
+                    break;
+            }
         }
     }
 }
