@@ -12,6 +12,7 @@ import com.file.filemanager.Task.DeleteTask;
 import com.file.filemanager.Task.PasteTask;
 import com.file.filemanager.Task.SearchTask;
 import com.file.filemanager.Task.ShowFilesTask;
+import com.file.filemanager.Task.SortTask;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class FileManagerService extends Service {
 
     class FileOperatorBinder extends Binder implements FileOperator{
         private BaseAsyncTask mPasteTask;
+        private BaseAsyncTask mShowFilesTask;
 
         @Override
         public void pasteFile(List<String> srcPaths, String dstPath, FileOperatorListener listener) {
@@ -42,13 +44,14 @@ public class FileManagerService extends Service {
 
         @Override
         public void showFile(String filePath, FileOperatorListener listener) {
-            BaseAsyncTask task = new ShowFilesTask(FileManagerService.this, filePath, listener);
-            task.execute();
+            mShowFilesTask = new ShowFilesTask(FileManagerService.this, filePath, listener);
+            mShowFilesTask.execute();
         }
 
         @Override
         public void sortFile(FileOperatorListener listener) {
-
+            BaseAsyncTask task = new SortTask(FileManagerService.this, listener);
+            task.execute();
         }
 
         @Override
@@ -59,8 +62,15 @@ public class FileManagerService extends Service {
 
         @Override
         public void cancelTask(int taskId) {
-            if(TASK_PASTE_ID == taskId)
-                mPasteTask.cancel(true);
+            switch (taskId){
+                case TASK_PASTE_ID:
+                    mPasteTask.cancel(true);
+                    break;
+
+                case TASK_SHOW_FILES_ID:
+                    mShowFilesTask.cancel(true);
+                    break;
+            }
         }
     }
 

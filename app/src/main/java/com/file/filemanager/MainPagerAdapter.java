@@ -7,9 +7,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-
-
 public class MainPagerAdapter extends FragmentPagerAdapter {
 
     private static final int PAGE_FRAGMENT_COUNT = 2;
@@ -68,16 +65,14 @@ public class MainPagerAdapter extends FragmentPagerAdapter {
         }
     }
 
-    public void showRootPathList(){
+    public void showMainUI(){
         mListFragment.showRootPathList();
+        mCategoryFragment.showCategory();
     }
 
     public void updateCurrentList(){
-        if(mCurrentFragment == mListFragment){
+        if(mCurrentFragment == mListFragment)
             mListFragment.updateCurrentList();
-        }else if(mCurrentFragment == mCategoryFragment){
-            mCategoryFragment.updateCurrentList();
-        }
     }
 
     public void clearFileList(){
@@ -109,14 +104,6 @@ public class MainPagerAdapter extends FragmentPagerAdapter {
     public String getCurPath(){
         if(mCurrentFragment == mListFragment){
             return mListFragment.getCurPath();
-        }
-
-        return null;
-    }
-
-    public ArrayList<FileInfo> getCurCategoryList() {
-        if (mCurrentFragment == mCategoryFragment) {
-            return mCategoryFragment.getCurCategoryList();
         }
 
         return null;

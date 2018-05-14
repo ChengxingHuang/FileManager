@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface FileOperator {
     int TASK_PASTE_ID = 0x01;
+    int TASK_SHOW_FILES_ID = 0x02;
 
     void pasteFile(List<String> srcPaths, String dstPath, FileOperatorListener listener);
     void deleteFile(List<String> deletePaths, FileOperatorListener listener);

@@ -66,8 +66,8 @@ import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_USER_CANCEL;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
-    public static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0x02;
+    private static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
+    private static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0x02;
 
     private static final String TAG = "MainActivity";
     private static final String FAVORITE_TABLE = "favorite";
@@ -364,6 +364,10 @@ public class MainActivity extends AppCompatActivity {
         mFileOperator.showFile(path, listener);
     }
 
+    public void sortFiles(FileOperatorListener listener){
+        mFileOperator.sortFile(listener);
+    }
+
     public interface MainActivityCallBack{
         void cleanCheck();
     }
@@ -489,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mFileOperator = (FileOperator)service;
-            mAdapter.showRootPathList();
+            mAdapter.showMainUI();
         }
 
         @Override
