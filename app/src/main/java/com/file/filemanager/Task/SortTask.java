@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import com.file.filemanager.FavoriteDBHandler;
 import com.file.filemanager.FileInfo;
 import com.file.filemanager.MountStorageManager;
 import com.file.filemanager.Service.FileOperatorListener;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 
 import static com.file.filemanager.CategoryFragment.TYPE_APK;
 import static com.file.filemanager.CategoryFragment.TYPE_DOCUMENT;
+import static com.file.filemanager.CategoryFragment.TYPE_FAVORITE;
 import static com.file.filemanager.CategoryFragment.TYPE_IMAGE;
 import static com.file.filemanager.CategoryFragment.TYPE_MUSIC;
 import static com.file.filemanager.CategoryFragment.TYPE_QQ;
@@ -47,12 +49,15 @@ public class SortTask extends BaseAsyncTask {
 
     @Override
     protected TaskInfo doInBackground(Void... params) {
+        // QQ and WeChat
         MountStorageManager storageManager = MountStorageManager.getInstance();
         ArrayList<MountStorageManager.MountStorage> mountStorageList = storageManager.getMountStorageList();
         for(int i = 0; i < mountStorageList.size(); i++){
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ, false);
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_WECHAT, true);
         }
+
+        // Media type
         getMediaFiles(IMAGE_EXTENSIONS);
         getMediaFiles(MUSIC_EXTENSIONS);
         getMediaFiles(VIDEO_EXTENSIONS );
@@ -60,8 +65,29 @@ public class SortTask extends BaseAsyncTask {
         getMediaFiles(APK_EXTENSIONS);
         getMediaFiles(ARCHIVE_EXTENSIONS);
 
+        // Favorite list
+        getFavoriteFiles();
+
         mTaskInfo.mErrorCode = ERROR_CODE_SUCCESS;
         return mTaskInfo;
+    }
+
+    private void getFavoriteFiles(){
+        FavoriteDBHandler dbHandler = new FavoriteDBHandler(mContext);
+        Cursor cursor = dbHandler.queryFavoritePathCursor();
+        if(null == cursor || 0 == cursor.getCount()){
+            return;
+        }
+
+        cursor.moveToFirst();
+        do{
+            TaskInfo taskInfo = new TaskInfo();
+            String path = cursor.getString(0);
+            taskInfo.setFileInfo(new FileInfo(mContext, path));
+            taskInfo.mErrorCode = TYPE_FAVORITE;
+            publishProgress(taskInfo);
+        }while(cursor.moveToNext());
+        cursor.close();
     }
 
     private void getMediaFiles(String[] extensions) {
@@ -79,6 +105,7 @@ public class SortTask extends BaseAsyncTask {
         if(cursor == null || cursor.getCount() == 0) {
             return;
         }
+
         cursor.moveToFirst();
         do {
             TaskInfo taskInfo = new TaskInfo();
@@ -99,7 +126,6 @@ public class SortTask extends BaseAsyncTask {
             taskInfo.setFileInfo(new FileInfo(mContext, path));
             publishProgress(taskInfo);
         } while(cursor.moveToNext());
-
         cursor.close();
     }
 

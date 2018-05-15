@@ -126,10 +126,13 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     private void showPopupMenu(View anchor, final FileInfo fileInfo){
         PopupMenu popupMenu = new PopupMenu(mMainActivity, anchor);
         popupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, popupMenu.getMenu());
-        if(mIsCurPathInFavorite = mMainActivity.isPathInFavorite(fileInfo.getFileAbsolutePath())) {
+
+        FavoriteDBHandler dbHandler = new FavoriteDBHandler(mMainActivity);
+        if(mIsCurPathInFavorite = dbHandler.isPathInFavorite(fileInfo.getFileAbsolutePath())) {
             MenuItem favorite = popupMenu.getMenu().findItem(R.id.favorite);
             favorite.setTitle(R.string.cancel_favorite);
         }
+
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
@@ -247,10 +250,11 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     }
 
     private void favorite(final FileInfo fileInfo){
+        FavoriteDBHandler dbHandler = new FavoriteDBHandler(mMainActivity);
         if(mIsCurPathInFavorite){
-            mMainActivity.deleteFromFavorite(fileInfo.getFileAbsolutePath());
+            dbHandler.deleteFromFavorite(fileInfo.getFileAbsolutePath());
         }else{
-            mMainActivity.addToFavorite(fileInfo.getFileAbsolutePath());
+            dbHandler.addToFavorite(fileInfo.getFileAbsolutePath());
         }
     }
 
