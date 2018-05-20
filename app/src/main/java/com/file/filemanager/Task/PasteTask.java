@@ -86,6 +86,9 @@ public class PasteTask extends BaseAsyncTask {
             fos = new FileOutputStream(dstFile);
             mTaskInfo.mErrorCode = ERROR_CODE_SUCCESS;
 
+            TaskInfo info = new TaskInfo();
+            info.mErrorPath = dstFile.toString();
+            publishProgress(info);
             while (-1 != (readBuffer = ins.read(buffer))) {
                 //用户取消黏贴
                 if(isCancelled()) {
@@ -96,10 +99,10 @@ public class PasteTask extends BaseAsyncTask {
                 fos.write(buffer, 0, readBuffer);
 
                 //更新数据
-                mTaskInfo.updateProgress(readBuffer);
-                mTaskInfo.updateCurName(mCurName);
-                if(mTaskInfo.needUpdate()) {
-                    publishProgress(mTaskInfo);
+                info.updateProgress(readBuffer);
+                info.updateCurName(mCurName);
+                if(info.needUpdate()) {
+                    publishProgress(info);
                 }
             }
         } catch (Exception e){
@@ -133,6 +136,10 @@ public class PasteTask extends BaseAsyncTask {
             mTaskInfo.mErrorCode = ERROR_CODE_MKDIR_ERROR;
             return;
         }
+
+        TaskInfo info = new TaskInfo();
+        info.mErrorPath = dstPath;
+        publishProgress(info);
 
         for(File file : files){
             String tmp[] = file.toString().split("/");

@@ -43,6 +43,7 @@ import com.file.filemanager.Service.FileManagerService;
 import com.file.filemanager.Service.FileOperator;
 import com.file.filemanager.Service.FileOperatorListener;
 import com.file.filemanager.Task.TaskInfo;
+import com.file.filemanager.Utils.MediaStoreUtils;
 import com.file.filemanager.Utils.OtherUtils;
 import com.file.filemanager.Utils.PreferenceUtils;
 
@@ -475,6 +476,7 @@ public class MainActivity extends AppCompatActivity {
     //黏贴操作
     class PasteOperationListener implements FileOperatorListener{
 
+        private List<String> mNewList;
         private ProgressDialog mCopyProcessDialog;
 
         @Override
@@ -493,6 +495,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
             mCopyProcessDialog.show();
+            mNewList = new ArrayList<>();
         }
 
         @Override
@@ -501,6 +504,9 @@ public class MainActivity extends AppCompatActivity {
             float percent = ((float)readSize / (float)mTotalOperatorSize) * 100;
             mCopyProcessDialog.setMessage(progressInfo.getCurName());
             mCopyProcessDialog.setProgress(Math.round(percent));
+            if(!mNewList.contains(progressInfo.mErrorPath)) {
+                mNewList.add(progressInfo.mErrorPath);
+            }
         }
 
         @Override
@@ -513,6 +519,7 @@ public class MainActivity extends AppCompatActivity {
                         mFileOperator.deleteFile(mCopySrcList, new DeleteOperationListener());
                     }
                     mAdapter.updateCurrentList();
+                    MediaStoreUtils.scanPathForMediaStore(mContext, mNewList);
                     break;
 
                 //用户取消黏贴，删除正在黏贴的部分
