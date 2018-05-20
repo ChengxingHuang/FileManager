@@ -161,7 +161,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
                         share(fileInfo);
                         break;
                     case R.id.detail:
-                        showDetails(fileInfo);
+                        details(fileInfo);
                         break;
                 }
                 return true;
@@ -271,7 +271,7 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         mMainActivity.startActivity(Intent.createChooser(intent, mMainActivity.getString(R.string.share)));
     }
 
-    private void showDetails(final FileInfo fileInfo){
+    private void details(final FileInfo fileInfo){
         String fileName = fileInfo.getFileName();
         String size = fileInfo.getHumanSize();
         String path = fileInfo.getParentFileAbsolutePath();
