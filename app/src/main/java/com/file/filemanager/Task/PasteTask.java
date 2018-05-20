@@ -1,6 +1,7 @@
 package com.file.filemanager.Task;
 
 import com.file.filemanager.Service.FileOperatorListener;
+import com.file.filemanager.Utils.OtherUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +31,11 @@ public class PasteTask extends BaseAsyncTask {
 
     @Override
     protected TaskInfo doInBackground(Void... params) {
+        if(!isEnoughSpace()){
+            mTaskInfo.mErrorCode = ERROR_CODE_NO_ENOUGH_SPACE;
+            return mTaskInfo;
+        }
+
         for(String copySrcPath : mCopySrcPaths) {
             mTaskInfo.mErrorPath = copySrcPath;
             File srcFile = new File(copySrcPath);
@@ -64,6 +70,12 @@ public class PasteTask extends BaseAsyncTask {
         }
 
         return mTaskInfo;
+    }
+
+    private boolean isEnoughSpace(){
+        long srcSize = OtherUtils.getFolderSize(mCopySrcPaths);
+        long available = OtherUtils.getStorageAvailableSpace(mCopyDstPath);
+        return srcSize < available;
     }
 
     private String reName(int index){

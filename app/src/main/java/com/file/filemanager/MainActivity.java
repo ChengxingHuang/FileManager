@@ -57,6 +57,7 @@ import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_DELETE_NO_PERMI
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_FILE_EXIST;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_FILE_NOT_EXIST;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_MKDIR_ERROR;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_NO_ENOUGH_SPACE;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_NO_MATCH_FILES;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_SUCCESS;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_USER_CANCEL;
@@ -513,6 +514,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onTaskResult(TaskInfo taskInfo) {
             mCopyProcessDialog.dismiss();
+            Log.d(TAG, "paste file error code = " + taskInfo.mErrorCode + "; error path = " + taskInfo.mErrorPath);
             switch(taskInfo.mErrorCode){
                 //黏贴成功，如果是剪切，需要删除源文件
                 case ERROR_CODE_SUCCESS:
@@ -521,6 +523,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mAdapter.updateCurrentList();
                     MediaStoreUtils.scanPathForMediaStore(mContext, mNewList);
+                    break;
+
+                //没有足够的空间黏贴
+                case ERROR_CODE_NO_ENOUGH_SPACE:
+                    Toast.makeText(mContext, getString(R.string.no_enough_space), Toast.LENGTH_SHORT).show();
                     break;
 
                 //用户取消黏贴，删除正在黏贴的部分
@@ -533,13 +540,11 @@ public class MainActivity extends AppCompatActivity {
 
                 //创建文件夹失败
                 case ERROR_CODE_MKDIR_ERROR:
-                    Log.d(TAG, "mkdir fail when copy file:" + taskInfo.mErrorPath);
                     showErrorAlert(getString(R.string.create_folder_error), taskInfo.mErrorPath);
                     break;
 
                 //源文件不存在
                 case ERROR_CODE_FILE_NOT_EXIST:
-                    Log.d(TAG, "Copy source file not exist:" + taskInfo.mErrorPath);
                     showErrorAlert(getString(R.string.file_not_exist), taskInfo.mErrorPath);
                     break;
             }

@@ -15,6 +15,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by huang on 2017/7/21.
@@ -42,6 +43,39 @@ public class OtherUtils {
         long availableBlocks = stat.getAvailableBlocksLong();
         return context.getString(R.string.available)
                 + Formatter.formatFileSize(context, blockSize * availableBlocks);
+    }
+
+    public static long getStorageAvailableSpace(String path){
+        StatFs stat = new StatFs(path);
+        long blockSize = stat.getBlockSizeLong();
+        long availableBlocks = stat.getAvailableBlocksLong();
+        return blockSize * availableBlocks;
+    }
+
+    public static long getFolderSize(List<String> paths){
+        long size = 0;
+        for(String path : paths){
+            getFolderSize(path);
+        }
+        return size;
+    }
+
+    public static long getFolderSize(String path){
+        File file = new File(path);
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                String[] children = file.list();
+                long size = 0;
+                for (String child : children) {
+                    size += getFolderSize(child);
+                }
+                return size;
+            } else {
+                return file.length();
+            }
+        }else{
+            return -1;
+        }
     }
 
     /**

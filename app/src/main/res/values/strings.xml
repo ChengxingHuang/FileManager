@@ -118,4 +118,5 @@
     <string name="no_storage">There is no storage in your device.</string>
 
     <string name="no_match_file">No match files.</string>
+    <string name="no_enough_space">No enough space to paste.</string>
 </resources>

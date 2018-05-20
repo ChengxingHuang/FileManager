@@ -22,6 +22,7 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
     public static final int ERROR_CODE_EMPTY_FOLDER = 0x09;
     public static final int ERROR_CODE_CURSOR_NULL = 0x10;
     public static final int ERROR_CODE_NO_MATCH_FILES = 0x11;
+    public static final int ERROR_CODE_NO_ENOUGH_SPACE = 0x12;
 
     private FileOperatorListener mListener;
 
