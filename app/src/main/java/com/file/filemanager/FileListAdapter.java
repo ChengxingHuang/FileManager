@@ -133,6 +133,10 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
             favorite.setTitle(R.string.cancel_favorite);
         }
 
+        if(fileInfo.isFolder()){
+            popupMenu.getMenu().findItem(R.id.share).setVisible(false);
+        }
+
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
