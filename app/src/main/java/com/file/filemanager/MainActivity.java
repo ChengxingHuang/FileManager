@@ -567,6 +567,7 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case ERROR_CODE_SUCCESS:
+                    MediaStoreUtils.scanPathForMediaStore(mContext, taskInfo.mErrorPath);
                     mAdapter.updateCurrentList();
                     break;
 
