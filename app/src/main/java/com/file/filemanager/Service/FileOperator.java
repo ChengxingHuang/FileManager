@@ -18,5 +18,6 @@ public interface FileOperator {
     void showFile(String filePath, FileOperatorListener listener);
     void sortFile(FileOperatorListener listener);
     void searchFile(String searchName, String searchPath, ContentResolver resolver, FileOperatorListener listener);
+    void renameFile(String oldPath, String newPath, FileOperatorListener listener);
     void cancelTask(int taskId);
 }

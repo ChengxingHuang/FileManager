@@ -23,6 +23,7 @@ public abstract class BaseAsyncTask extends AsyncTask<Void, TaskInfo, TaskInfo> 
     public static final int ERROR_CODE_CURSOR_NULL = 0x10;
     public static final int ERROR_CODE_NO_MATCH_FILES = 0x11;
     public static final int ERROR_CODE_NO_ENOUGH_SPACE = 0x12;
+    public static final int ERROR_CODE_RENAME_FAILED = 0x13;
 
     private FileOperatorListener mListener;
 

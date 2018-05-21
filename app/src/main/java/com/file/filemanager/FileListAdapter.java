@@ -21,7 +21,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -195,16 +194,8 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         dialog.setButton(DialogInterface.BUTTON_POSITIVE, mMainActivity.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                File old = fileInfo.getFile();
-                File newFile = new File(fileInfo.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
-                if(newFile.exists()){
-                    Toast.makeText(mMainActivity, R.string.file_exist, Toast.LENGTH_SHORT).show();
-                }else{
-                    if(!old.renameTo(newFile))
-                        Toast.makeText(mMainActivity, R.string.rename_fail, Toast.LENGTH_SHORT).show();
-                    else
-                        mListFragment.updateCurrentList();
-                }
+                mMainActivity.renameFile(fileInfo.getFileAbsolutePath(),
+                        fileInfo.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
             }
         });
         dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mMainActivity.getString(android.R.string.cancel), new DialogInterface.OnClickListener() {

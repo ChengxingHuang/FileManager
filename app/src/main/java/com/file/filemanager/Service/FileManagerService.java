@@ -10,6 +10,7 @@ import com.file.filemanager.Task.BaseAsyncTask;
 import com.file.filemanager.Task.CreateFolderTask;
 import com.file.filemanager.Task.DeleteTask;
 import com.file.filemanager.Task.PasteTask;
+import com.file.filemanager.Task.RenameTask;
 import com.file.filemanager.Task.SearchTask;
 import com.file.filemanager.Task.ShowFilesTask;
 import com.file.filemanager.Task.SortTask;
@@ -57,6 +58,12 @@ public class FileManagerService extends Service {
         @Override
         public void searchFile(String searchName, String searchPath, ContentResolver resolver, FileOperatorListener listener){
             BaseAsyncTask task = new SearchTask(FileManagerService.this, searchName, searchPath, resolver, listener);
+            task.execute();
+        }
+
+        @Override
+        public void renameFile(String oldPath, String newPath, FileOperatorListener listener) {
+            BaseAsyncTask task = new RenameTask(oldPath, newPath, listener);
             task.execute();
         }
 

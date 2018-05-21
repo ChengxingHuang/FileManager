@@ -1,6 +1,7 @@
 package com.file.filemanager.Utils;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -43,5 +44,18 @@ public class MediaStoreUtils {
             ContentResolver cr = context.getContentResolver();
             cr.delete(uri, where, whereArgs);
         }
+    }
+
+    public static void updateInMediaStore(Context context, String oldPath, String newPath){
+        Uri uri = MediaStore.Files.getContentUri("external");
+        String where = MediaStore.Files.FileColumns.DATA + "=?";
+        String[] whereArgs = new String[] { oldPath };
+        ContentResolver cr = context.getContentResolver();
+        ContentValues values = new ContentValues();
+
+        values.put(MediaStore.Files.FileColumns.DATA, newPath);
+        cr.update(uri, values, where, whereArgs);
+
+        scanPathForMediaStore(context, newPath);
     }
 }

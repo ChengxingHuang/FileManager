@@ -59,6 +59,7 @@ import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_FILE_NOT_EXIST;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_MKDIR_ERROR;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_NO_ENOUGH_SPACE;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_NO_MATCH_FILES;
+import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_RENAME_FAILED;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_SUCCESS;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_USER_CANCEL;
 
@@ -87,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
     private List<String> mCopySrcList;
     private long mTotalOperatorSize;
     private boolean mIsCut;
+    private String mRenameOldPath;
+    private String mRenameNewPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -317,6 +320,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void showFiles(String path, FileOperatorListener listener){
         mFileOperator.showFile(path, listener);
+    }
+
+    public void renameFile(String oldPath, String newPath){
+        mRenameOldPath = oldPath;
+        mRenameNewPath = newPath;
+        mFileOperator.renameFile(oldPath, newPath, new RenameOperatorListener());
     }
 
     public void sortFiles(FileOperatorListener listener){
@@ -611,6 +620,37 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case ERROR_CODE_USER_CANCEL:
+                    break;
+            }
+        }
+    }
+
+    class RenameOperatorListener implements FileOperatorListener{
+
+        @Override
+        public void onTaskPrepare() {
+
+        }
+
+        @Override
+        public void onTaskProgress(TaskInfo taskInfo) {
+
+        }
+
+        @Override
+        public void onTaskResult(TaskInfo taskInfo) {
+            switch (taskInfo.mErrorCode){
+                case ERROR_CODE_SUCCESS:
+                    MediaStoreUtils.updateInMediaStore(mContext, mRenameOldPath, mRenameNewPath);
+                    mAdapter.updateCurrentList();
+                    break;
+
+                case ERROR_CODE_FILE_EXIST:
+                    Toast.makeText(mContext, R.string.file_exist, Toast.LENGTH_SHORT).show();
+                    break;
+
+                case ERROR_CODE_RENAME_FAILED:
+                    Toast.makeText(mContext, R.string.rename_fail, Toast.LENGTH_SHORT).show();
                     break;
             }
         }
