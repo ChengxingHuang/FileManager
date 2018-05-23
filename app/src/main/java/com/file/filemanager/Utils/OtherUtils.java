@@ -315,7 +315,7 @@ public class OtherUtils {
                 "application/vnd.oasis.opendocument.presentation");
 
         // Excel
-        registerMimeType(R.drawable.file_type_ppt,
+        registerMimeType(R.drawable.file_type_excel,
                 "application/vnd.oasis.opendocument.spreadsheet",
                 "application/vnd.oasis.opendocument.spreadsheet-template",
                 "application/vnd.ms-excel",
