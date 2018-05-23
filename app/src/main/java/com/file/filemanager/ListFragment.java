@@ -159,6 +159,7 @@ public class ListFragment extends Fragment {
         }else {
             //没有storage的情况
             Toast.makeText(mMainActivity, R.string.no_storage, Toast.LENGTH_SHORT).show();
+            mMainActivity.finish();
         }
     }
 
