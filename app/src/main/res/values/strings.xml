@@ -20,6 +20,11 @@
     <string name="menu_sponsor">Sponsor</string>
     <string name="menu_about">About</string>
     <string name="permission_denied">Permission Denied</string>
+    <string name="permission_denied_copy">Permission Denied to Copy, please go to setting-app-FileManage to allow permission</string>
+    <string name="permission_denied_delete">Permission Denied to Delete, please go to setting-app-FileManage to allow permission</string>
+    <string name="permission_denied_rename">Permission Denied to rename, , please go to setting-app-FileManage to allow permission</string>
+    <string name="no_read_permission">No read permission, please go to setting-app-FileManage to allow permission</string>
+    <string name="no_write_permission">No write permission, you can\'t use copy delete and others function</string>
 
     <string name="empty">Empty</string>
 

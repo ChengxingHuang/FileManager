@@ -1,6 +1,5 @@
 package com.file.filemanager;
 
-import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,14 +7,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
@@ -45,6 +41,7 @@ import com.file.filemanager.Service.FileOperatorListener;
 import com.file.filemanager.Task.TaskInfo;
 import com.file.filemanager.Utils.MediaStoreUtils;
 import com.file.filemanager.Utils.OtherUtils;
+import com.file.filemanager.Utils.PermissionUtils;
 import com.file.filemanager.Utils.PreferenceUtils;
 
 import java.io.File;
@@ -64,10 +61,6 @@ import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_SUCCESS;
 import static com.file.filemanager.Task.BaseAsyncTask.ERROR_CODE_USER_CANCEL;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 0x01;
-    private static final int PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE = 0x02;
-
     private static final String TAG = "MainActivity";
 
     private DrawerLayout mDrawerLayout;
@@ -97,15 +90,11 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mContext = this;
+        requestPermission();
 
         MountStorageManager storageManager = MountStorageManager.getInstance();
         storageManager.init(this);
         OtherUtils.mimeTypeInit();
-
-        mServiceConnection = new FileServiceConnection();
-        Intent intent = new Intent(this, FileManagerService.class);
-        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
-        requestPermission();
 
         Toolbar toolbar = (Toolbar)findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
@@ -178,7 +167,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(mServiceConnection);
+        if(null != mServiceConnection)
+            unbindService(mServiceConnection);
     }
 
     @Override
@@ -242,12 +232,27 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE
-                || requestCode == PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE) {
-            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
-            }
-            return;
+        switch(requestCode) {
+            case PermissionUtils.PERMISSION_REQUEST_READ_EXTERNAL_STORAGE:
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    if (PermissionUtils.showRequestPermissionRationale(this, PermissionUtils.PERMISSION_READ_EXTERNAL_STORAGE)) {
+                        Toast.makeText(mContext, R.string.permission_denied, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(mContext, R.string.no_read_permission, Toast.LENGTH_LONG).show();
+                    }
+                    finish();
+                } else {
+                    bindFileManagerService();
+                }
+                break;
+
+            case PermissionUtils.PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE:
+                if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    if (PermissionUtils.showRequestPermissionRationale(this, PermissionUtils.PERMISSION_WRITE_EXTERNAL_STORAGE)) {
+                        Toast.makeText(mContext, R.string.no_write_permission, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
@@ -369,18 +374,25 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void requestPermission(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
-            }
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        PERMISSION_REQUEST_WRITE_EXTERNAL_STORAGE);
-            }
+        // Read Permission
+        if(!PermissionUtils.hasPermission(this, PermissionUtils.PERMISSION_READ_EXTERNAL_STORAGE)) {
+            PermissionUtils.requestPermission(this, PermissionUtils.PERMISSION_READ_EXTERNAL_STORAGE,
+                    PermissionUtils.PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+        }else{
+            bindFileManagerService();
         }
+
+        // Write Permission
+        if(!PermissionUtils.hasPermission(this, PermissionUtils.PERMISSION_WRITE_EXTERNAL_STORAGE)) {
+            PermissionUtils.requestPermission(this, PermissionUtils.PERMISSION_WRITE_EXTERNAL_STORAGE,
+                    PermissionUtils.PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+        }
+    }
+
+    private void bindFileManagerService(){
+        mServiceConnection = new FileServiceConnection();
+        Intent intent = new Intent(this, FileManagerService.class);
+        bindService(intent, mServiceConnection, BIND_AUTO_CREATE);
     }
 
     private void showSortByDialog(){

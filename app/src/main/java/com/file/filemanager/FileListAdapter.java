@@ -21,6 +21,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.PopupMenu;
 
+import com.file.filemanager.Utils.PermissionUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,78 +172,90 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
     }
 
     private void copy(boolean isCut, final FileInfo fileInfo){
-        mMainActivity.setPasteIconVisible(true);
-        List<FileInfo> fileInfoList = new ArrayList<>();
-        fileInfoList.add(fileInfo);
-        mMainActivity.setSrcCopyPath(fileInfoList, isCut);
+        if(PermissionUtils.hasPermission(mMainActivity, PermissionUtils.PERMISSION_WRITE_EXTERNAL_STORAGE)) {
+            mMainActivity.setPasteIconVisible(true);
+            List<FileInfo> fileInfoList = new ArrayList<>();
+            fileInfoList.add(fileInfo);
+            mMainActivity.setSrcCopyPath(fileInfoList, isCut);
+        }else{
+            Toast.makeText(mMainActivity, R.string.permission_denied_copy, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void delete(final FileInfo fileInfo){
-        List<String> paths = new ArrayList<>();
-        paths.add(fileInfo.getFileAbsolutePath());
-        mMainActivity.deleteFiles(paths);
+        if(PermissionUtils.hasPermission(mMainActivity, PermissionUtils.PERMISSION_WRITE_EXTERNAL_STORAGE)) {
+            List<String> paths = new ArrayList<>();
+            paths.add(fileInfo.getFileAbsolutePath());
+            mMainActivity.deleteFiles(paths);
+        }else{
+            Toast.makeText(mMainActivity, R.string.permission_denied_delete, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void rename(final FileInfo fileInfo){
-        LayoutInflater inflater = LayoutInflater.from(mMainActivity);
-        View view = inflater.inflate(R.layout.new_folder_dialog, null);
-        final EditText nameEdit = (EditText)view.findViewById(R.id.name);
+        if(PermissionUtils.hasPermission(mMainActivity, PermissionUtils.PERMISSION_WRITE_EXTERNAL_STORAGE)) {
+            LayoutInflater inflater = LayoutInflater.from(mMainActivity);
+            View view = inflater.inflate(R.layout.new_folder_dialog, null);
+            final EditText nameEdit = (EditText) view.findViewById(R.id.name);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mMainActivity, R.style.AlertDialogCustom));
-        AlertDialog dialog = builder.create();
-        dialog.setTitle(R.string.rename);
-        dialog.setView(view);
-        dialog.setButton(DialogInterface.BUTTON_POSITIVE, mMainActivity.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                mMainActivity.renameFile(fileInfo.getFileAbsolutePath(),
-                        fileInfo.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
-            }
-        });
-        dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mMainActivity.getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mMainActivity, R.style.AlertDialogCustom));
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(R.string.rename);
+            dialog.setView(view);
+            dialog.setButton(DialogInterface.BUTTON_POSITIVE, mMainActivity.getString(android.R.string.ok), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mMainActivity.renameFile(fileInfo.getFileAbsolutePath(),
+                            fileInfo.getParentFileAbsolutePath() + "/" + nameEdit.getText().toString());
+                }
+            });
+            dialog.setButton(DialogInterface.BUTTON_NEGATIVE, mMainActivity.getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
 
-            }
-        });
-        dialog.show(); //这个不能放在监听文字改变事件之后，否则btn会是null???
+                }
+            });
+            dialog.show(); //这个不能放在监听文字改变事件之后，否则btn会是null???
 
-        final Button btn = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-        nameEdit.setHint(null);
-        nameEdit.setText(fileInfo.getFileName());
-        nameEdit.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            final Button btn = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            nameEdit.setHint(null);
+            nameEdit.setText(fileInfo.getFileName());
+            nameEdit.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                boolean includeSpecial = false;
-                //包含特殊字符
-                for (String str : SPECIAL) {
-                    if(s.toString().contains(str)) {
-                        Toast.makeText(mMainActivity, R.string.special_tips, Toast.LENGTH_SHORT).show();
-                        includeSpecial = true;
-                        break;
-                    }
                 }
 
-                if(0 == s.length() || includeSpecial)
-                    btn.setEnabled(false);
-                else
-                    btn.setEnabled(true);
-            }
-        });
-        if(!fileInfo.isFolder())
-            nameEdit.setSelection(fileInfo.getFileName().lastIndexOf("."));
-        else
-            nameEdit.setSelection(fileInfo.getFileName().length());
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    boolean includeSpecial = false;
+                    //包含特殊字符
+                    for (String str : SPECIAL) {
+                        if (s.toString().contains(str)) {
+                            Toast.makeText(mMainActivity, R.string.special_tips, Toast.LENGTH_SHORT).show();
+                            includeSpecial = true;
+                            break;
+                        }
+                    }
+
+                    if (0 == s.length() || includeSpecial)
+                        btn.setEnabled(false);
+                    else
+                        btn.setEnabled(true);
+                }
+            });
+            if (!fileInfo.isFolder())
+                nameEdit.setSelection(fileInfo.getFileName().lastIndexOf("."));
+            else
+                nameEdit.setSelection(fileInfo.getFileName().length());
+        }else{
+            Toast.makeText(mMainActivity, R.string.permission_denied_delete, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void favorite(final FileInfo fileInfo){
