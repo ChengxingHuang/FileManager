@@ -37,6 +37,7 @@ public class SortTask extends BaseAsyncTask {
 
     private static final String PATH_WECHAT = "tencent/MicroMsg";
     private static final String PATH_QQ = "tencent/QQfile_recv";
+    private static final String PATH_QQ2 = "tencent/TIMfile_recv";
 
     private Context mContext;
     private TaskInfo mTaskInfo;
@@ -54,6 +55,7 @@ public class SortTask extends BaseAsyncTask {
         ArrayList<MountStorageManager.MountStorage> mountStorageList = storageManager.getMountStorageList();
         for(int i = 0; i < mountStorageList.size(); i++){
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ, false);
+            getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ2, false);
             getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_WECHAT, true);
         }
 
@@ -135,11 +137,12 @@ public class SortTask extends BaseAsyncTask {
             return;
         }
         for (String curPath : pathList) {
-            File file = new File(curPath);
+            String fullPath = path + "/" + curPath;
+            File file = new File(fullPath);
             if (file.isDirectory()) {
-                getTencentFiles(curPath, isWeChat);
+                getTencentFiles(fullPath, isWeChat);
             } else {
-                FileInfo info = new FileInfo(mContext, curPath);
+                FileInfo info = new FileInfo(mContext, fullPath);
                 TaskInfo taskInfo = new TaskInfo();
                 if(isWeChat)
                     taskInfo.mErrorCode = TYPE_WECHAT;
