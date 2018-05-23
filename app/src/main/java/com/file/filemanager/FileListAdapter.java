@@ -128,14 +128,15 @@ public class FileListAdapter extends RecyclerView.Adapter<FileListAdapter.MyView
         PopupMenu popupMenu = new PopupMenu(mMainActivity, anchor);
         popupMenu.getMenuInflater().inflate(R.menu.popup_menu_window, popupMenu.getMenu());
 
-        FavoriteDBHandler dbHandler = new FavoriteDBHandler(mMainActivity);
-        if(mIsCurPathInFavorite = dbHandler.isPathInFavorite(fileInfo.getFileAbsolutePath())) {
-            MenuItem favorite = popupMenu.getMenu().findItem(R.id.favorite);
-            favorite.setTitle(R.string.cancel_favorite);
-        }
-
         if(fileInfo.isFolder()){
             popupMenu.getMenu().findItem(R.id.share).setVisible(false);
+            popupMenu.getMenu().findItem(R.id.favorite).setVisible(false);
+        }else{
+            FavoriteDBHandler dbHandler = new FavoriteDBHandler(mMainActivity);
+            if(mIsCurPathInFavorite = dbHandler.isPathInFavorite(fileInfo.getFileAbsolutePath())) {
+                MenuItem favorite = popupMenu.getMenu().findItem(R.id.favorite);
+                favorite.setTitle(R.string.cancel_favorite);
+            }
         }
 
         popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
