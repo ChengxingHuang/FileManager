@@ -62,9 +62,8 @@ public class MountStorageManager {
                             + ", mIsMounted = " + mountStorage.mIsMounted + ", mRemovable = " + mountStorage.mRemovable
                             + ", mAvailableSpace = " + mountStorage.mAvailableSpace + ", mTotalSpace = " + mountStorage.mTotalSpace);
 
-                //已经mount并且存在子目录的StorageVolume才添加到list中
-                //ps:vivo x7测试，包含otg，但是为空
-                if(path.list().length > 0 && mountStorage.mIsMounted) {
+                //已经mount的StorageVolume才添加到list中
+                if(mountStorage.mIsMounted) {
                     mMountStorageList.add(mountStorage);
                 }
             }

@@ -39,6 +39,12 @@ public class SortTask extends BaseAsyncTask {
     private static final String PATH_QQ = "tencent/QQfile_recv";
     private static final String PATH_QQ2 = "tencent/TIMfile_recv";
 
+    private static final int IMAGE_MIN_SIZE = 1024 * 5;
+    private static final int MUSIC_MIN_SIZE = 1024 * 10;
+    private static final int VIDEO_MIN_SIZE = 1024 * 100;
+    private static final int DOCUMENT_MIN_SIZE = 1024;
+    private static final int ARCHIVE_MIN_SIZE = 1024 * 10;
+
     private Context mContext;
     private TaskInfo mTaskInfo;
 
@@ -54,18 +60,18 @@ public class SortTask extends BaseAsyncTask {
         MountStorageManager storageManager = MountStorageManager.getInstance();
         ArrayList<MountStorageManager.MountStorage> mountStorageList = storageManager.getMountStorageList();
         for(int i = 0; i < mountStorageList.size(); i++){
-            getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ, false);
-            getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ2, false);
-            getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_WECHAT, true);
+            getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ, TYPE_QQ);
+            getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_QQ2, TYPE_QQ);
+            getTencentFiles(mountStorageList.get(i).mPath + "/" + PATH_WECHAT, TYPE_WECHAT);
         }
 
         // Media type
-        getMediaFiles(IMAGE_EXTENSIONS);
-        getMediaFiles(MUSIC_EXTENSIONS);
-        getMediaFiles(VIDEO_EXTENSIONS );
-        getMediaFiles(DOCUMENT_EXTENSIONS);
-        getMediaFiles(APK_EXTENSIONS);
-        getMediaFiles(ARCHIVE_EXTENSIONS);
+        getMediaFiles(IMAGE_EXTENSIONS, TYPE_IMAGE);
+        getMediaFiles(MUSIC_EXTENSIONS, TYPE_MUSIC);
+        getMediaFiles(VIDEO_EXTENSIONS, TYPE_VIDEO);
+        getMediaFiles(DOCUMENT_EXTENSIONS, TYPE_DOCUMENT);
+        getMediaFiles(APK_EXTENSIONS, TYPE_APK);
+        getMediaFiles(ARCHIVE_EXTENSIONS, TYPE_ZIP);
 
         // Favorite list
         getFavoriteFiles();
@@ -92,15 +98,37 @@ public class SortTask extends BaseAsyncTask {
         cursor.close();
     }
 
-    private void getMediaFiles(String[] extensions) {
+    private void getMediaFiles(String[] extensions, int type) {
         Uri uri = MediaStore.Files.getContentUri("external");
-        String[] projection = new String[]{MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.TITLE};
-        String selection = "";
+        String[] projection = new String[]{MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.SIZE};
+        String selection = "(";
         for(int i = 0; i < extensions.length; i++){
             if(0 != i) {
                 selection = selection + " OR ";
             }
             selection = selection + MediaStore.Files.FileColumns.DATA + " LIKE '%" + extensions[i] + "'";
+        }
+
+        // 过滤太小的文件
+        switch (type){
+            case TYPE_IMAGE:
+                selection = selection + ") AND " + MediaStore.Files.FileColumns.SIZE + " > " + IMAGE_MIN_SIZE;
+                break;
+            case TYPE_MUSIC:
+                selection = selection + ") AND " + MediaStore.Files.FileColumns.SIZE + " > " + MUSIC_MIN_SIZE;
+                break;
+            case TYPE_VIDEO:
+                selection = selection + ") AND " + MediaStore.Files.FileColumns.SIZE + " > " + VIDEO_MIN_SIZE;
+                break;
+            case TYPE_DOCUMENT:
+                selection = selection + ") AND " + MediaStore.Files.FileColumns.SIZE + " > " + DOCUMENT_MIN_SIZE;
+                break;
+            case TYPE_ZIP:
+                selection = selection + ") AND " + MediaStore.Files.FileColumns.SIZE + " > " + ARCHIVE_MIN_SIZE;
+                break;
+            default:
+                selection = selection + ")";
+                break;
         }
 
         Cursor cursor = mContext.getContentResolver().query(uri, projection, selection, null, null);
@@ -111,27 +139,15 @@ public class SortTask extends BaseAsyncTask {
         cursor.moveToFirst();
         do {
             TaskInfo taskInfo = new TaskInfo();
+            taskInfo.mErrorCode = type;
             String path = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA));
-            if(IMAGE_EXTENSIONS == extensions){
-                taskInfo.mErrorCode = TYPE_IMAGE;
-            }else if(MUSIC_EXTENSIONS == extensions){
-                taskInfo.mErrorCode = TYPE_MUSIC;
-            }else if(VIDEO_EXTENSIONS  == extensions){
-                taskInfo.mErrorCode = TYPE_VIDEO;
-            }else if(DOCUMENT_EXTENSIONS == extensions){
-                taskInfo.mErrorCode = TYPE_DOCUMENT;
-            }else if(APK_EXTENSIONS == extensions){
-                taskInfo.mErrorCode = TYPE_APK;
-            }else{
-                taskInfo.mErrorCode = TYPE_ZIP;
-            }
             taskInfo.setFileInfo(new FileInfo(mContext, path));
             publishProgress(taskInfo);
         } while(cursor.moveToNext());
         cursor.close();
     }
 
-    private void getTencentFiles(String path, boolean isWeChat){
+    private void getTencentFiles(String path, int type){
         String[] pathList = new File(path).list();
         if(null == pathList || pathList.length <= 0){
             return;
@@ -140,15 +156,11 @@ public class SortTask extends BaseAsyncTask {
             String fullPath = path + "/" + curPath;
             File file = new File(fullPath);
             if (file.isDirectory()) {
-                getTencentFiles(fullPath, isWeChat);
+                getTencentFiles(fullPath, type);
             } else {
-                FileInfo info = new FileInfo(mContext, fullPath);
                 TaskInfo taskInfo = new TaskInfo();
-                if(isWeChat)
-                    taskInfo.mErrorCode = TYPE_WECHAT;
-                else
-                    taskInfo.mErrorCode = TYPE_QQ;
-                taskInfo.setFileInfo(info);
+                taskInfo.mErrorCode = type;
+                taskInfo.setFileInfo(new FileInfo(mContext, fullPath));
                 publishProgress(taskInfo);
             }
         }
